@@ -1,0 +1,22 @@
+{
+  "name": "@library-management/backend",
+  "version": "0.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "command-line-args": "^6.0.1",
+    "express": "^4.21.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "devDependencies": {
+    "@types/command-line-args": "^5.2.3",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.9.0"
+  },
+  "scripts": {
+    "dev": "tsx index.ts -h localhost -p 4326",
+    "start": "tsx index.ts -h 0.0.0.0 -p 4326"
+  }
+}
