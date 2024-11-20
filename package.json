@@ -7,6 +7,7 @@
   "author": "yezhiyi9670 <yezhiyi9670@sparkslab.art>",
   "workspaces": [
     "frontend",
-    "backend"
+    "backend",
+    "common"
   ]
 }
