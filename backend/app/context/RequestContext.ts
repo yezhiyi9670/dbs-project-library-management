@@ -41,7 +41,7 @@ export default class RequestContext {
       return false
     }
     if(this.user.role == UserRole.Root) {
-      return target != UserRole.Root
+      return target != UserRole.Root || true
     }
     if(this.user.role == UserRole.Admin) {
       return target != UserRole.Root && target != UserRole.Admin

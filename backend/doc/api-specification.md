@@ -84,15 +84,15 @@ to_purchase_amount int
 
 ```plain
 /api/titles/list (
-  search_key?, book_number?, barcode?, year_min?, year_max?, title?, author?, publisher?,
-  price_min?, price_max?, status?: (borrowable, borrowed, unavailabe, empty)
+  search_key?, book_number?, barcode?, title?, author?, publisher?, accessible?: set(offline, online),
+  price_min?, price_max?, status?: set(borrowable, borrowed, unavailabe, empty)
 )
 /api/titles/info (book_number)
 
 /api/titles/manage/import (csv_data)
 /api/titles/manage/export-query (
-  search_key?, book_number?, barcode?, year_min?, year_max?, title?, author?, publisher?,
-  price_min?, price_max?, status?: (borrowable, borrowed, unavailabe, empty)
+  search_key?, book_number?, barcode?, title?, author?, publisher?, accessible?: set(offline, online),
+  price_min?, price_max?, status?: set(borrowable, borrowed, unavailabe, empty)
 )
 /api/titles/manage/update (book_number, data...)
 /api/titles/manage/delete (book_number)
@@ -108,9 +108,9 @@ notes text
 ```
 
 ```plain
-/api/stocks/manage/list (barcode_prefix?)
+/api/stocks/manage/list (book_number?, barcode_prefix?)
 /api/stocks/manage/import (csv_data)
-/api/stocks/manage/export-query (barcode_prefix?)
+/api/stocks/manage/export-query (book_number, barcode_prefix?)
 /api/stocks/manage/enroll (book_number, barcode)
 /api/stocks/manage/info (barcode)
 /api/stocks/manage/set-notes (barcode, notes)
@@ -138,7 +138,7 @@ notes text
 /api/borrows/my (barcode_prefix?)
 /api/borrows/check (barcode)  # 仅返回“是否正在被借阅”“借阅者是否是你”“是否将淘汰”三个标志
 
-/api/borrows/manage/list (barcode_prefix?, username?, time_from?, time_to?)
+/api/borrows/manage/list (book_number?, barcode_prefix?, username?, time_from?, time_to?)
 /api/borrows/manage/info (seq)
 /api/borrows/manage/borrow (barcode, username, time, due_time)
 /api/borrows/manage/renew (barcode, username, due_time)

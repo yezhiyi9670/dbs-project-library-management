@@ -37,6 +37,16 @@ export namespace UserAuth {
       return [null, null]  // Secret invalid
     }
     const username = session.username
+
+    // Reset expire time of the session
+    const expireTime = curTime + globalConfig.sessionExpireTime()
+    await dbManager.queryAsync(
+      SqlClause.updateAnythingFromDictWhereDict('users_session', {
+        expire: expireTime
+      }, {
+        session: session.session
+      })
+    )
   
     // Gather and verify user
     const user = await dbManager.queryEntityAsync(
