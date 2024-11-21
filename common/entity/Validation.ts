@@ -36,16 +36,27 @@ export namespace Validation {
       validator_(field, item)
     })
   }
+  export function validateIsSet_(field: string, enums: unknown[], data: unknown) {
+    if(!Array.isArray(data)) {
+      throw new FieldInvalidError(field, data)
+    }
+    data.forEach(item => {
+      if(enums.indexOf(item) == -1) {
+        throw new FieldInvalidError(field, item)
+      }
+    })
+  }
 
   export type ValidatorSpecification = ((k: string, v: any) => void) | [(k: string, v: any) => void]
 
   /**
    * Based on validator specifications, validate and extract data from request body
    */
-  export function getApiInputs_(body: any, items: {
+  export function getApiInputs_(body: {[key: string]: any}, items: {
     [key: string]: ValidatorSpecification
-  }) {
+  }): {[key: string]: any} {
     const ret: {[key: string]: any} = {}
+    const copyOf = {...body}
     for(let key in items) {
       let validator_ = items[key]
       let optional = false
@@ -58,8 +69,15 @@ export namespace Validation {
         validator_(key, value)
       }
       ret[key] = value
+      delete copyOf[key]
     }
-    return ret
+    if('__session' in copyOf) {
+      delete copyOf['__session']
+    }
+    return {
+      ...ret,
+      __rest: copyOf
+    }
   }
   export const paginationInputs: {[key: string]: ValidatorSpecification} = {
     pn: [(k, v) => validateIsInt_(k, v)],

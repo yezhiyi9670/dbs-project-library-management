@@ -14,14 +14,16 @@ import dbManager from "../../database/dbManager"
 import { SqlClause } from "../../database/SqlClause"
 import { SqlEscape } from "../../database/SqlEscape"
 import routeUserManage from "./manage"
+import routeUserPasswordReset from "./password-reset"
 
 export default function routeUser(app: Express) {
+  routeUserPasswordReset(app)
   routeUserManage(app)
 
   app.get('/api/user/info', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await gatherContextAsync(req)
     show_success(res,
-      EntityUtils.entityToSanitizedDict(context.user, false)
+      EntityUtils.toDisplayDict(context.user, false)
     )
   }))
 
@@ -50,12 +52,14 @@ export default function routeUser(app: Express) {
     const context = await gatherContextAsync(req)
     context.checkLoggedIn_()
 
-    const whereClause = `Where session<>${SqlEscape.escape(context.sessionId!)} and username=${SqlEscape.escape(context.user!.username)}`
-    await dbManager.queryAsync(
-      SqlClause.deleteAnything('users_session') + ' ' + whereClause
-    )
-    show_success(res, {
-      session: context.sessionId
+    await dbManager.withAtomicAsync(async db => {
+      const whereClause = `Where session<>${SqlEscape.escape(context.sessionId!)} and username=${SqlEscape.escape(context.user!.username)}`
+      await db.queryAsync(
+        SqlClause.deleteAnything('users_session') + ' ' + whereClause
+      )
+      show_success(res, {
+        session: context.sessionId
+      })
     })
   }))
 
@@ -69,7 +73,7 @@ export default function routeUser(app: Express) {
     if(context.user) {  // Already logged in
       if(context.user.username == username) {
         show_result(res, null, `You have already logged in!`, {
-          user: EntityUtils.entityToSanitizedDict(context.user, false),
+          user: EntityUtils.toDisplayDict(context.user, false),
           session: context.sessionId
         })
         return
@@ -85,7 +89,7 @@ export default function routeUser(app: Express) {
     res.cookie(cookieInfo.name('session_id'), sessionId, { maxAge: globalConfig.sessionExpireTime() * 2 * 1000 })
     res.cookie(cookieInfo.name('session_secret'), sessionSecret, { maxAge: globalConfig.sessionExpireTime() * 2 * 1000 })
     show_result(res, null, `Welcome back, ${user.display_name}!`, {
-      user: EntityUtils.entityToSanitizedDict(user, false),
+      user: EntityUtils.toDisplayDict(user, false),
       session: sessionId
     })
   }))
@@ -123,13 +127,15 @@ export default function routeUser(app: Express) {
       user.password = PasswordHash.hash(password)
     }
 
-    await dbManager.queryAsync(
-      SqlClause.updateAnythingFromDictWhereDict(
-        'users', EntityUtils.entityToStoredDict(user), {
-          username: user.username
-        }
+    await dbManager.withAtomicAsync(async db => {
+      await db.queryAsync(
+        SqlClause.updateAnythingFromDictWhereDict(
+          'users', EntityUtils.toStoredDict(user), {
+            username: user.username
+          }
+        )
       )
-    )
-    show_success(res, EntityUtils.entityToSanitizedDict(user, false))
+      show_success(res, EntityUtils.toDisplayDict(user, false))
+    })
   }))
 }

@@ -3,67 +3,69 @@ import { SqlEscape } from "./SqlEscape";
 
 const schemaData = {
   'dataver_journal': {
-    'dataver': 'int primary key'
+    'dataver': 'int not null primary key'
   },
   'users': {
-    'username': 'varchar(250) primary key',
-    'password': 'varchar(250)',
-    'email': 'text',
-    'display_name': 'text',
-    'role': 'text',
-    'can_reset': 'int',
-    'enabled': 'int',
-    'private_key': 'text',
-    'public_key': 'text'
+    'username': 'varchar(250) not null primary key',
+    'password': 'varchar(250) not null',
+    'email': 'text not null',
+    'display_name': 'text not null',
+    'role': 'text not null',
+    'can_reset': 'bool not null',
+    'enabled': 'bool not null',
+    'private_key': 'text not null',
+    'public_key': 'text not null'
   },
   'users_session': {
-    'username': 'varchar(250) , foreign key(username) references [users](username) on delete cascade on update cascade',
-    'password': 'varchar(250)',
-    'session': 'varchar(250) primary key',
-    'secret': 'varchar(250)',
-    'expire': 'bigint'
+    'username': 'varchar(250) not null , foreign key(username) references [users](username) on delete cascade on update cascade',
+    'password': 'varchar(250) not null',
+    'session': 'varchar(250) not null primary key',
+    'secret': 'varchar(250) not null',
+    'expire': 'bigint not null'
   },
   'users_password_reset': {
-    'username': 'varchar(250) primary key , foreign key(username) references [users](username) on delete cascade on update cascade',
-    'password': 'varchar(250)',
-    'secret': 'varchar(250)'
+    'username': 'varchar(250) not null primary key , foreign key(username) references [users](username) on delete cascade on update cascade',
+    'password': 'varchar(250) not null',
+    'secret': 'varchar(250) not null'
   },
   'titles': {
-    'book_number': 'varchar(250) primary key',
-    'title': 'text',
-    'author': 'text',
-    'publisher': 'text',
-    'year': 'int',
-    'place': 'text',
-    'url': 'text',
-    'price_milliunit': 'bigint',
-    'description': 'text',
-    'to_purchase_amount': 'int'
+    'book_number': 'varchar(250) not null primary key',
+    'title': 'text not null',
+    'author': 'text not null',
+    'publisher': 'text not null',
+    'year': 'int not null',
+    'place': 'text not null',
+    'url': 'text not null',
+    'price_milliunit': 'bigint not null',
+    'description': 'text not null',
+    'to_purchase_amount': 'int not null'
   },
   'stocks': {
-    'book_number': 'varchar(250) , foreign key(book_number) references [titles](book_number) on delete cascade on update cascade',
-    'barcode': 'varchar(250) primary key',
-    'deprecated': 'bool',
-    'notes': 'text'
+    'book_number': 'varchar(250) not null , foreign key(book_number) references [titles](book_number) on delete cascade on update cascade',
+    'barcode': 'varchar(250) not null primary key',
+    'deprecated': 'bool not null',
+    'stock_notes': 'text not null'
   },
   'borrows': {
-    'seq': 'bigint primary key auto_increment',
-    'barcode': 'varchar(250) , foreign key(barcode) references [stocks](barcode) on delete cascade on update cascade',
-    'username': 'varchar(250) , foreign key(username) references [users](username) on delete cascade on update cascade',
-    'borrow_time': 'bigint',
-    'due_time': 'bigint',
-    'return_time': 'bigint',
-    'notes': 'text'
+    'uuid': 'varchar(250) not null primary key',
+    'barcode': 'varchar(250) not null , foreign key(barcode) references [stocks](barcode) on delete cascade on update cascade',
+    'username': 'varchar(250) not null , foreign key(username) references [users](username) on delete cascade on update cascade',
+    'borrow_time': 'bigint not null',
+    'due_time': 'bigint not null',
+    'returned': 'bool not null',
+    'return_time': 'bigint not null',
+    'borrow_notes': 'text not null'
   }
 }
 
-export type TableName = keyof typeof schemaData
+export type TableName = (keyof typeof schemaData)
+export type TableOrViewName = TableName | 'stocks_view_borrowed' | 'titles_view_stats' | 'users_view_stats'
 
 class TableInfo {
   __addPrefix(name: string) {
     return globalConfig.tableNamespace() + '__' + name
   }
-  name(name: TableName) {
+  name(name: TableOrViewName) {
     return this.__addPrefix(name)
   }
   schema(name: TableName) {
@@ -78,7 +80,7 @@ class TableInfo {
       })
     }).join(', ')
   }
-  idList(): (TableName)[] {
+  idList(): TableName[] {
     return Object.keys(schemaData).map(item => item as TableName)
   }
 }

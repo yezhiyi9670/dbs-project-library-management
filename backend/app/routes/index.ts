@@ -7,11 +7,18 @@ import { ApiHandlerWrap } from "../context/ApiHandlerWrap"
 import { gatherContextAsync } from "../context/RequestContext"
 import { EntityUtils } from "@library-management/common/entity/EntityUtils"
 import routeUser from "./user"
+import routeTitle from "./title"
+import routeStock from "./stock"
+import routeBorrow from "./borrow"
+import routeStats from "./stats"
 
 export default function routeMain(app: Express) {
   routeStatic(app)
-
   routeUser(app)
+  routeTitle(app)
+  routeStock(app)
+  routeBorrow(app)
+  routeStats(app)
 
   app.get('/api', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await gatherContextAsync(req)
@@ -24,7 +31,7 @@ export default function routeMain(app: Express) {
         allowPasswordReset: globalConfig.allowPasswordReset()
       },
       session: context.sessionId,
-      user: EntityUtils.entityToSanitizedDict(context.user, false)
+      user: EntityUtils.toDisplayDict(context.user, false)
     })
   }))
 }

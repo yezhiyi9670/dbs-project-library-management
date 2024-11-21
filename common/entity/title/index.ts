@@ -2,6 +2,12 @@ import Entity from "../Entity";
 import { TitleValidation } from "./validation";
 
 export default class Title implements Entity {
+  __hasDerivatives: boolean = false
+  public total: number = -1
+  public borrowed: number = -1
+  public deprecated: number = -1
+  public deprecated_and_borrowed: number = -1
+
   constructor(
     public book_number: string = '',
     public title: string = '',
@@ -12,11 +18,17 @@ export default class Title implements Entity {
     public url: string = '',
     public price_milliunit: number = 0,
     public description: string = '',
-    public to_purchase_amount: number = 0
+    public to_purchase_amount: number = 0,
   ) {
     if(this.book_number != '') {
       this.validate_()
     }
+  }
+
+  static withDerivatives() {
+    const ret = new Title()
+    ret.__hasDerivatives = true
+    return ret
   }
 
   validate_() {
@@ -40,5 +52,11 @@ export default class Title implements Entity {
         'to_purchase_amount'
       ]
     }
+  }
+
+  derivativeFields(): string[] {
+    return [
+      'total', 'borrowed', 'deprecated', 'deprecated_and_borrowed'
+    ]
   }
 }

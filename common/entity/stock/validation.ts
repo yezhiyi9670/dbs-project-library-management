@@ -13,6 +13,6 @@ export namespace StockValidation {
     }
   }
   export function validateNotes_(data: string) {
-    Validation.validateMaxStrLen_('notes', 65535, data)
+    Validation.validateMaxStrLen_('stock_notes', 65535, data)
   }
 }

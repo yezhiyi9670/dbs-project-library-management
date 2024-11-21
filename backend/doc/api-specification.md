@@ -83,19 +83,19 @@ to_purchase_amount int
 ```
 
 ```plain
-/api/titles/list (
+[x] /api/titles/list (
   search_key?, book_number?, barcode?, title?, author?, publisher?, accessible?: set(offline, online),
   price_min?, price_max?, status?: set(borrowable, borrowed, unavailabe, empty)
 )
-/api/titles/info (book_number)
+[x] /api/titles/info (book_number)
 
 /api/titles/manage/import (csv_data)
 /api/titles/manage/export-query (
   search_key?, book_number?, barcode?, title?, author?, publisher?, accessible?: set(offline, online),
   price_min?, price_max?, status?: set(borrowable, borrowed, unavailabe, empty)
 )
-/api/titles/manage/update (book_number, data...)
-/api/titles/manage/delete (book_number)
+[x] /api/titles/manage/update (book_number, data...)
+[x] /api/titles/manage/delete (book_number)
 ```
 
 ## 书籍 `_stocks`
@@ -108,21 +108,21 @@ notes text
 ```
 
 ```plain
-/api/stocks/manage/list (book_number?, barcode_prefix?)
+[x] /api/stocks/manage/list (book_number?, barcode_prefix?)
 /api/stocks/manage/import (csv_data)
 /api/stocks/manage/export-query (book_number, barcode_prefix?)
-/api/stocks/manage/enroll (book_number, barcode)
-/api/stocks/manage/info (barcode)
-/api/stocks/manage/set-notes (barcode, notes)
-/api/stocks/manage/deprecate (barcode)
-/api/stocks/manage/revive (barcode)
-/api/stocks/manage/delete (barcode)
+[x] /api/stocks/manage/enroll (book_number, barcode)
+[x] /api/stocks/manage/info (barcode)
+[x] /api/stocks/manage/set-notes (barcode, notes)
+[x] /api/stocks/manage/deprecate (barcode)
+[x] /api/stocks/manage/revive (barcode)
+[x] /api/stocks/manage/delete (barcode)
 ```
 
 ## 借阅记录 `_borrows`
 
 ```plain
-seq bigint primary key,
+uuid string primary key,
 barcode varchar(250),
 username varchar(250),
 borrow_time bigint,
@@ -132,23 +132,23 @@ notes text
 ```
 
 ```plain
-/api/borrows/borrow (barcode)
-/api/borrows/renew (barcode)
-/api/borrows/return (barcode)
-/api/borrows/my (barcode_prefix?)
-/api/borrows/check (barcode)  # 仅返回“是否正在被借阅”“借阅者是否是你”“是否将淘汰”三个标志
+[x] /api/borrows/borrow (barcode)
+[x] /api/borrows/renew (barcode)
+[x] /api/borrows/return (barcode)
+[x] /api/borrows/my (barcode_prefix?)
+[x] /api/borrows/check (barcode)  # 仅返回“是否正在被借阅”“借阅者是否是你”“是否将淘汰”三个标志
 
-/api/borrows/manage/list (book_number?, barcode_prefix?, username?, time_from?, time_to?)
-/api/borrows/manage/info (seq)
-/api/borrows/manage/borrow (barcode, username, time, due_time)
-/api/borrows/manage/renew (barcode, username, due_time)
-/api/borrows/manage/return (barcode)
-/api/borrows/manage/set-notes (seq)
-/api/borrows/manage/delete (seq)
+[x] /api/borrows/manage/list (book_number?, barcode_prefix?, username?, time_from?, time_to?)
+[x] /api/borrows/manage/info (seq)
+[x] /api/borrows/manage/borrow (barcode, username)
+[x] /api/borrows/manage/renew (barcode, username)
+[x] /api/borrows/manage/return (barcode, username)
+[x] /api/borrows/manage/set-notes (seq)
+[x] /api/borrows/manage/delete (seq)
 ```
 
 ## 统计接口
 
 ```plain
-/api/stats  # 提供馆藏书目数量、书籍数量，以及正在被借阅的数量。如果有图书管理员身份，另外提供待采购数量、待采购总金额和待出库数量。
+[ ] /api/stats  # 提供馆藏书目数量、书籍数量，以及正在被借阅的数量。如果有图书管理员身份，另外提供待采购数量、待采购总金额和待出库数量。
 ```

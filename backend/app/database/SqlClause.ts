@@ -1,6 +1,17 @@
 import { Validation } from "@library-management/common/entity/Validation"
 import { SqlEscape } from "./SqlEscape"
-import tableInfo, { TableName } from "./tableInfo"
+import tableInfo, { TableOrViewName } from "./tableInfo"
+
+export type TableOrViewNameOrJoins = TableOrViewName | TableOrViewName[]
+
+class JoinPresets {
+  users: TableOrViewNameOrJoins = ['users', 'users_view_stats']
+  titles: TableOrViewNameOrJoins = ['titles', 'titles_view_stats']
+  stocks: TableOrViewNameOrJoins = ['stocks', 'stocks_view_borrowed']
+  stocks_ext: TableOrViewNameOrJoins = ['titles', 'stocks', 'stocks_view_borrowed']
+  borrows_ext: TableOrViewNameOrJoins = ['titles', 'stocks', 'borrows']
+}
+export const joinPresets = new JoinPresets()
 
 export namespace SqlClause {
   export function whereClauseFromDict(dict: Object) {
@@ -14,21 +25,30 @@ export namespace SqlClause {
     return 'Where ' + clause
   }
 
-  export function selectAnything(table: TableName) {
-    return 'SELECT * from ' + SqlEscape.escapeId(tableInfo.name(table))
+  export function escapeIdOrJoins(table: TableOrViewNameOrJoins) {
+    if(!Array.isArray(table)) {
+      return SqlEscape.escapeId(tableInfo.name(table))
+    }
+    if(table.length == 0) {
+      throw new Error('Cannot query from a join of zero tables.')
+    }
+    return table.map(item => SqlEscape.escapeId(tableInfo.name(item))).join(' natural join ')
   }
-  export function selectAnythingWhereDict(table: TableName, dict: Object) {
+  export function selectAnything(table: TableOrViewNameOrJoins) {
+    return 'SELECT * from ' + escapeIdOrJoins(table)
+  }
+  export function selectAnythingWhereDict(table: TableOrViewNameOrJoins, dict: Object) {
     return `${selectAnything(table)} ${whereClauseFromDict(dict)}`
   }
 
-  export function deleteAnything(table: TableName) {
+  export function deleteAnything(table: TableOrViewName) {
     return 'DELETE from ' + SqlEscape.escapeId(tableInfo.name(table))
   }
-  export function deleteAnythingWhereDict(table: TableName, dict: Object) {
+  export function deleteAnythingWhereDict(table: TableOrViewName, dict: Object) {
     return `${deleteAnything(table)} ${whereClauseFromDict(dict)}`
   }
 
-  export function updateAnythingFromDict(table: TableName, dict: Object) {
+  export function updateAnythingFromDict(table: TableOrViewName, dict: Object) {
     let clause = ''
     for(let key in dict) {
       if(clause != '') {
@@ -38,11 +58,11 @@ export namespace SqlClause {
     }
     return `UPDATE ${SqlEscape.escapeId(tableInfo.name(table))} set ${clause}`
   }
-  export function updateAnythingFromDictWhereDict(table: TableName, set: Object, where: Object) {
+  export function updateAnythingFromDictWhereDict(table: TableOrViewName, set: Object, where: Object) {
     return `${updateAnythingFromDict(table, set)} ${whereClauseFromDict(where)}`
   }
 
-  export function insertFromDict(table: TableName, dict: Object) {
+  export function insertFromDict(table: TableOrViewName, dict: Object) {
     let keys_clause = ''
     let values_clause = ''
     for(let key in dict) {
@@ -83,6 +103,20 @@ export namespace SqlClause {
       clause += '(' + item + ')'
     }
     return 'Where ' + clause
+  }
+
+  export function orCondition(conditions: string[]) {
+    if(conditions.length == 0) {
+      return '1=0'
+    }
+    let clause = ''
+    for(let condition of conditions) {
+      if(clause != '') {
+        clause += ' or '
+      }
+      clause += '(' + condition + ')'
+    }
+    return clause
   }
 
   export function containsCondition(column: string, values: unknown[]) {

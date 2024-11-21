@@ -2,6 +2,8 @@ import Entity from "../Entity";
 import { SessionValidation } from "./validation";
 
 export default class UserSession implements Entity {
+  __hasDerivatives: boolean = false
+
   constructor(
     public username: string = '',
     public password: string = '',
@@ -21,5 +23,9 @@ export default class UserSession implements Entity {
 
   sensitiveFields(isManageApi: boolean) {
     return ['password', 'secret']
+  }
+
+  derivativeFields() {
+    return []
   }
 }

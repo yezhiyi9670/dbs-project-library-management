@@ -45,6 +45,8 @@ app.use((req, res) => {
 globalConfig.init()
 globalConfig.dryRun()
 
+console.log('Establishing database connection...')
+
 await dbManager.initAsync()
 
 if(globalConfig.allowPasswordReset()) {

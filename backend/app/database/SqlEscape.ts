@@ -16,6 +16,10 @@ export namespace SqlEscape {
     const add_slashes_str = addSlashes(str)
     return `${mysql.escape(add_slashes_str)}`
   }
+  export function escapeLikeStartsWith(str: string) {
+    const add_slashes_str = addSlashes(str) + '%'
+    return mysql.escape(add_slashes_str)
+  }
   export function escapeLikeContains(str: string) {
     const add_slashes_str = '%' + addSlashes(str) + '%'
     return mysql.escape(add_slashes_str)

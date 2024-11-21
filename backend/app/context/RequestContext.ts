@@ -36,21 +36,44 @@ export default class RequestContext {
     }
   }
 
-  canManipulateRole(target: UserRole) {
+  canManageBooks() {
     if(!this.user) {
       return false
     }
+    if(-1 == [UserRole.Root, UserRole.Admin, UserRole.Librarian].indexOf(this.user.role)) {
+      return false
+    }
+    return true
+  }
+  checkCanManageBooks_() {
+    this.checkLoggedIn_()
+    if(!this.canManageBooks()) {
+      throw new PermissionDeniedError()
+    }
+  }
+
+  manipulatableRoles() {
+    if(!this.user) {
+      return []
+    }
     if(this.user.role == UserRole.Root) {
-      return target != UserRole.Root || true
+      return [ UserRole.Admin, UserRole.Librarian, UserRole.Reader ]
     }
     if(this.user.role == UserRole.Admin) {
-      return target != UserRole.Root && target != UserRole.Admin
+      return [ UserRole.Librarian, UserRole.Reader ]
     }
+    if(this.user.role == UserRole.Librarian) {
+      return [ UserRole.Librarian, UserRole.Reader ]
+    }
+    return []
+  }
+
+  canManipulateRole(target: UserRole) {
+    return this.manipulatableRoles().indexOf(target) != -1
   }
 
   checkCanManipulateRole_(target: UserRole) {
     this.checkLoggedIn_()
-    this.checkCanManageUsers_()
     if(!this.canManipulateRole(target)) {
       throw new ImproperRoleError(this.user!.role, target)
     }
@@ -70,7 +93,7 @@ async function verifyUserAsync(req: express.Request): Promise<[User | null, stri
 
   // Session ID must be reclarified in the request body. This helps prevent CSRF.
   if(Object.keys(reqbody).length > 0 && globalConfig.csrfCheck()) {
-    if(reqbody['session'] !== sessionId) {
+    if(reqbody['__session'] !== sessionId) {
       return [null, null]
     }
   }
