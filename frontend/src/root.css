@@ -1,0 +1,12 @@
+:root {
+  user-select: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.v-table {
+  user-select: text;
+}

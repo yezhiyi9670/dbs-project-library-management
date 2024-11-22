@@ -14,6 +14,7 @@ import { UserValidation } from "@library-management/common/entity/user/validatio
 import { PasswordHash } from "../../crypto/PasswordHash"
 import FieldInvalidError from "@library-management/common/error/validation/FieldInvalidError"
 import mysql from 'mysql'
+import BadSortingError from "@library-management/common/error/entity/BadSortingError"
 
 async function getContextAsync(req: Request) {
   const context = await gatherContextAsync(req)
@@ -22,14 +23,15 @@ async function getContextAsync(req: Request) {
 }
 
 export default function routeUserManage(app: Express) {
-  app.get('/api/user/manage/list', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/user/manage/list', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await getContextAsync(req)
 
-    let { search_key, overdue_min, roles, pn, rn } = Validation.getApiInputs_(req.body, {
+    let { search_key, overdue_min, roles, pn, rn, sort_by, sort_dir } = Validation.getApiInputs_(req.body, {
       search_key: [Validation.validateIsStr_],
       overdue_min: [Validation.validateIsInt_],
       roles: [(k, v) => Validation.validateIsListOf_(k, (k, v) => UserValidation.validateRole_(v), v)],
-      ...Validation.paginationInputs
+      ...Validation.paginationInputs,
+      ...Validation.sortingInputs,
     })
     
     await dbManager.withAtomicAsync(async db => {
@@ -46,20 +48,28 @@ export default function routeUserManage(app: Express) {
         SqlClause.containsCondition('role', context.manipulatableRoles())
       ])
       const limitClause = SqlClause.paginationClause(pn, rn)
-      const sql = `${SqlClause.selectAnything(joinPresets.users)} ${whereClause}`
-      const users = await db.queryEntitiesAsync([User.withDerivatives], `${sql} ${limitClause}`)
-      const count = await db.queryCountAsync(sql)
+      const orderClause = SqlClause.sortingClause(sort_by, sort_dir)
+      const sql = `${SqlClause.selectAnyUser()} ${whereClause} ${orderClause}`
 
-      show_success(res, {
-        count,
-        window: users.map(user => {
-          return EntityUtils.toDisplayDict(user, true)
+      try {
+        const users = await db.queryEntitiesAsync([User.withDerivatives], `${sql} ${limitClause}`)
+        const count = await db.queryCountAsync(sql)
+
+        show_success(res, {
+          count,
+          window: users.map(user => {
+            return EntityUtils.toDisplayDict(user, true)
+          })
         })
-      })
+      } catch(err) {
+        db.sqlErrorRethrow_(err, {
+          ER_BAD_FIELD_ERROR: () => new BadSortingError(sort_by)
+        })
+      }
     })
   }))
 
-  app.get('/api/user/manage/info', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/user/manage/info', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await getContextAsync(req)
 
     let { username } = Validation.getApiInputs_(req.body, {
@@ -69,7 +79,7 @@ export default function routeUserManage(app: Express) {
     await dbManager.withAtomicAsync(async db => {
       const user = await db.queryEntityAsync(
         [User.withDerivatives],
-        SqlClause.selectAnythingWhereDict(joinPresets.users, {
+        SqlClause.selectAnyUserWhereDict({
           username: username
         })
       )
@@ -94,7 +104,7 @@ export default function routeUserManage(app: Express) {
         if(old_username) {
           let user = await db.queryEntityAsync(
             [User.withDerivatives],
-            SqlClause.selectAnythingWhereDict(joinPresets.users, { username: old_username })
+            SqlClause.selectAnyUserWhereDict({ username: old_username })
           )
           if(!user) {
             throw new NotFoundError(old_username)
@@ -153,7 +163,7 @@ export default function routeUserManage(app: Express) {
       })
       let origUser = await db.queryEntityAsync(
         [User.withDerivatives],
-        SqlClause.selectAnythingWhereDict(joinPresets.users, { username: old_username })
+        SqlClause.selectAnyUserWhereDict({ username: old_username })
       )
       if(!origUser) {
         throw new NotFoundError(old_username)

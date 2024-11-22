@@ -13,11 +13,12 @@ import { EntityUtils } from '@library-management/common/entity/EntityUtils'
 import { StockValidation } from '@library-management/common/entity/stock/validation'
 import { SqlEscape } from '../../database/SqlEscape'
 import tableInfo from '../../database/tableInfo'
+import BadSortingError from '@library-management/common/error/entity/BadSortingError'
 
 export default function routeTitle(app: Express) {
   routeTitleManage(app)
 
-  app.get('/api/title/info', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/title/info', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await gatherContextAsync(req)
 
     const { book_number } = Validation.getApiInputs_(req.body, {
@@ -37,12 +38,12 @@ export default function routeTitle(app: Express) {
     })
   }))
 
-  app.get('/api/title/list', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/title/list', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await gatherContextAsync(req)
 
     let {
       search_key, book_number, barcode, title, author, publisher,
-      accessible, price_min, price_max, status, pn, rn
+      accessible, year_min, year_max, status, pn, rn, sort_by, sort_dir
     } = Validation.getApiInputs_(req.body, {
       search_key: [Validation.validateIsStr_],
       book_number: [(k, v) => TitleValidation.validateBookNumber_(v)],
@@ -53,12 +54,13 @@ export default function routeTitle(app: Express) {
       accessible: [(k, v) => Validation.validateIsSet_(k, [
         'offline', 'online'
       ], v)],
-      price_min: [Validation.validateIsInt_],
-      price_max: [Validation.validateIsInt_],
+      year_min: [Validation.validateIsInt_],
+      year_max: [Validation.validateIsInt_],
       status: [(k, v) => Validation.validateIsSet_(k, [
         'borrowable', 'borrowed', 'unavailable', 'empty'
       ], v)],
-      ...Validation.paginationInputs
+      ...Validation.paginationInputs,
+      ...Validation.sortingInputs,
     })
     if(accessible == null) {
       accessible = []
@@ -106,11 +108,11 @@ export default function routeTitle(app: Express) {
         ...(accessible.indexOf('online') != -1 ? [
           `url is not null and url <> ''`
         ] : []),
-        ...((price_min != null) ? [
-          `price_milliunit >= ${SqlEscape.escape(price_min)}`
+        ...((year_min != null) ? [
+          `year >= ${SqlEscape.escape(year_min)}`
         ] : []),
-        ...((price_max != null) ? [
-          `price_milliunit <= ${SqlEscape.escape(price_max)}`
+        ...((year_max != null) ? [
+          `year <= ${SqlEscape.escape(year_max)}`
         ] : []),
         ...(status ? [
           SqlClause.orCondition(status.map((item: string) => ({
@@ -127,14 +129,22 @@ export default function routeTitle(app: Express) {
       ]
       const whereClause = SqlClause.whereClauseFromAnd(conditions)
       const limitClause = SqlClause.paginationClause(pn, rn)
-      const sql = `${SqlClause.selectAnything(joinPresets.titles)} ${whereClause}`
-      const titles = await db.queryEntitiesAsync([Title.withDerivatives], `${sql} ${limitClause}`)
-      const count = await db.queryCountAsync(sql)
+      const orderClause = SqlClause.sortingClause(sort_by, sort_dir)
+      const sql = `${SqlClause.selectAnything(joinPresets.titles)} ${whereClause} ${orderClause}`
 
-      show_success(res, {
-        count,
-        window: titles.map(title => EntityUtils.toDisplayDict(title, context.canManageBooks()))
-      })
+      try {
+        const titles = await db.queryEntitiesAsync([Title.withDerivatives], `${sql} ${limitClause}`)
+        const count = await db.queryCountAsync(sql)
+
+        show_success(res, {
+          count,
+          window: titles.map(title => EntityUtils.toDisplayDict(title, context.canManageBooks()))
+        })
+      } catch(err) {
+        db.sqlErrorRethrow_(err, {
+          ER_BAD_FIELD_ERROR: () => new BadSortingError(sort_by)
+        })
+      }
     })
   }))
 }

@@ -54,7 +54,7 @@ export namespace UserAuth {
       // Gather and verify user
       const user = await db.queryEntityAsync(
         [User.withDerivatives],
-        SqlClause.selectAnythingWhereDict(joinPresets.users, {
+        SqlClause.selectAnyUserWhereDict({
           username: username
         })
       )
@@ -97,7 +97,7 @@ export namespace UserAuth {
     return await dbManager.withAtomicAsync(async db => {
       const user = await db.queryEntityAsync(
         [User.withDerivatives],
-        SqlClause.selectAnythingWhereDict(joinPresets.users, {
+        SqlClause.selectAnyUserWhereDict({
           username: username
         })
       )

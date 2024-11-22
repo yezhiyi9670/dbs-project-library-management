@@ -19,11 +19,11 @@ async function getContextAsync(req: Request) {
 
 export default function routeBorrowManage(app: Express) {
 
-  app.get('/api/borrow/manage/list', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/borrow/manage/list', ApiHandlerWrap.wrap(async (req, res) => {
     await handleBorrowList(req, res, true)
   }))
 
-  app.get('/api/borrow/manage/info', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/borrow/manage/info', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await getContextAsync(req)
 
     const { uuid } = Validation.getApiInputs_(req.body, {

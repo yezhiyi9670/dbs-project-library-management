@@ -13,6 +13,7 @@ import NotFoundError from '@library-management/common/error/entity/NotFoundError
 import { EntityUtils } from '@library-management/common/entity/EntityUtils'
 import AlreadyExistsError from '@library-management/common/error/entity/AlreadyExistsError'
 import { SqlEscape } from '../../database/SqlEscape'
+import BadSortingError from '@library-management/common/error/entity/BadSortingError'
 
 async function getContextAsync(req: Request) {
   const context = await gatherContextAsync(req)
@@ -22,7 +23,7 @@ async function getContextAsync(req: Request) {
 
 export default function routeStockManage(app: Express) {
 
-  app.get('/api/stock/manage/generate-barcode', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/stock/manage/generate-barcode', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await gatherContextAsync(req) // Skip auth
     
     await dbManager.withAtomicAsync(async db => {
@@ -39,16 +40,17 @@ export default function routeStockManage(app: Express) {
     })
   }))
 
-  app.get('/api/stock/manage/list', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/stock/manage/list', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await getContextAsync(req)
     const curTime = Math.floor((+new Date())/1000)
 
-    const { book_number, barcode_prefix, deprecated, borrowed, pn, rn } = Validation.getApiInputs_(req.body, {
+    const { book_number, barcode_prefix, deprecated, borrowed, pn, rn, sort_by, sort_dir } = Validation.getApiInputs_(req.body, {
       book_number: [(k, v) => StockValidation.validateBookNumber_(v)],
       barcode_prefix: [Validation.validateIsStr_],
       deprecated: [(k, v) => Validation.validateIsSet_(k, [false, true], v)],
       borrowed: [(k, v) => Validation.validateIsSet_(k, ['none', 'normal', 'overdue'], v)],
-      ...Validation.paginationInputs
+      ...Validation.paginationInputs,
+      ...Validation.sortingInputs,
     })
 
     await dbManager.withAtomicAsync(async db => {
@@ -75,16 +77,23 @@ export default function routeStockManage(app: Express) {
         ] : [])
       ]
       const whereClause = SqlClause.whereClauseFromAnd(conditions)
+      const orderClause = SqlClause.sortingClause(sort_by, sort_dir)
       const limitClause = SqlClause.paginationClause(pn, rn)
-      const sql = `${SqlClause.selectAnything(joinPresets.stocks_ext)} ${whereClause}`
+      const sql = `${SqlClause.selectAnything(joinPresets.stocks_ext)} ${whereClause} ${orderClause}`
 
-      const stocks = Stock.fromExtDicts(await db.queryAsync(`${sql} ${limitClause}`))
-      const count = await db.queryCountAsync(sql)
+      try {
+        const stocks = Stock.fromExtDicts(await db.queryAsync(`${sql} ${limitClause}`))
+        const count = await db.queryCountAsync(sql)
 
-      show_success(res, {
-        count,
-        window: stocks.map(stock => EntityUtils.toDisplayDict(stock, true))
-      })
+        show_success(res, {
+          count,
+          window: stocks.map(stock => EntityUtils.toDisplayDict(stock, true))
+        })
+      } catch(err) {
+        db.sqlErrorRethrow_(err, {
+          ER_BAD_FIELD_ERROR: () => new BadSortingError(sort_by)
+        })
+      }
     })
   }))
 
@@ -123,7 +132,7 @@ export default function routeStockManage(app: Express) {
     })
   }))
 
-  app.get('/api/stock/manage/info', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/stock/manage/info', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await getContextAsync(req)
 
     const { barcode } = Validation.getApiInputs_(req.body, {

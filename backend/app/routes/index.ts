@@ -20,7 +20,7 @@ export default function routeMain(app: Express) {
   routeBorrow(app)
   routeStats(app)
 
-  app.get('/api', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await gatherContextAsync(req)
     show_result(res, null, 'Hello world from the backend!', {
       version: BACKEND_VERSION,

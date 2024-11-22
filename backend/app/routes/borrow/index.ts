@@ -14,6 +14,7 @@ import StockDeprecatedError from '@library-management/common/error/borrow/StockD
 import NotBorrowedByYouError from '@library-management/common/error/borrow/NotBorrowedByYouError'
 import AlreadyOverdueError from '@library-management/common/error/borrow/AlreadyOverdueError'
 import MaxBorrowReachedError from '@library-management/common/error/borrow/MaxBorrowReachedError'
+import NotOnLibraryTerminalError from '@library-management/common/error/borrow/NotOnLibraryTerminalError'
 import globalConfig from '../../config/globalConfig'
 import { EntityUtils } from '@library-management/common/entity/EntityUtils'
 import AlreadyExistsError from '@library-management/common/error/entity/AlreadyExistsError'
@@ -21,6 +22,8 @@ import { show_result, show_success } from '../../api-protocol/JsonResponse'
 import { RandomToken } from '@library-management/common/crypto/RandomToken'
 import { SqlEscape } from '../../database/SqlEscape'
 import User from '@library-management/common/entity/user'
+import { PasswordHash } from '../../crypto/PasswordHash'
+import BadSortingError from '@library-management/common/error/entity/BadSortingError'
 
 export async function handleBorrowList(req: Request, res: Response, isAdmin: boolean) {
   const curTime = Math.floor((+new Date()) / 1000)
@@ -30,13 +33,14 @@ export async function handleBorrowList(req: Request, res: Response, isAdmin: boo
     context.checkCanManageBooks_()
   }
   
-  const { book_numbers, barcodes, returned, overdue, users, pn, rn } = Validation.getApiInputs_(req.body, {
+  const { book_numbers, barcodes, returned, overdue, users, pn, rn, sort_by, sort_dir } = Validation.getApiInputs_(req.body, {
     book_numbers: [(k, v) => Validation.validateIsListOf_(k, Validation.validateIsStr_, v)],
     barcodes: [(k, v) => Validation.validateIsListOf_(k, Validation.validateIsStr_, v)],
     returned: [(k, v) => Validation.validateIsSet_(k, [ false, true ], v)],
     overdue: [(k, v) => Validation.validateIsSet_(k, [ false, true ], v)],
     users: [(k, v) => Validation.validateIsListOf_(k, Validation.validateIsStr_, v)],
-    ...Validation.paginationInputs
+    ...Validation.paginationInputs,
+    ...Validation.sortingInputs,
   })
 
   await dbManager.withAtomicAsync(async db => {
@@ -75,17 +79,22 @@ export async function handleBorrowList(req: Request, res: Response, isAdmin: boo
       ] : [])
     ]
     const whereClause = SqlClause.whereClauseFromAnd(conditions)
-    const orderClause = `Order by borrow_time desc`
+    const orderClause = SqlClause.sortingClause(sort_by, sort_dir)
     const sql = `${SqlClause.selectAnything(joinPresets.borrows_ext)} ${whereClause} ${orderClause}`
     const limitClause = SqlClause.paginationClause(pn, rn)
 
-    const borrows = Borrow.fromExtDicts(await db.queryAsync(`${sql} ${limitClause}`))
-    const count = await db.queryCountAsync(sql)
-
-    show_success(res, {
-      count,
-      window: borrows.map(borrow => EntityUtils.toDisplayDict(borrow, isAdmin))
-    })
+    try {
+      const borrows = Borrow.fromExtDicts(await db.queryAsync(`${sql} ${limitClause}`))
+      const count = await db.queryCountAsync(sql)
+      show_success(res, {
+        count,
+        window: borrows.map(borrow => EntityUtils.toDisplayDict(borrow, isAdmin))
+      })
+    } catch(err) {
+      db.sqlErrorRethrow_(err, {
+        ER_BAD_FIELD_ERROR: () => new BadSortingError(sort_by)
+      })
+    }
   })
 }
 
@@ -97,12 +106,20 @@ export async function handleBorrow(req: Request, res: Response, op: 'borrow' | '
     context.checkCanManageBooks_()
   }
 
-  const { barcode, username: __username } = Validation.getApiInputs_(req.body, {
+  const { barcode, __secret, username: __username } = Validation.getApiInputs_(req.body, {
     barcode: (k, v) => BorrowValidation.validateBarcode_(v),
+    __secret: [Validation.validateIsStr_],
     ...(isAdmin && {
       username: (k, v) => BorrowValidation.validateUsername_(v)
     })
   })
+
+  if(!isAdmin) {
+    const secretHash = globalConfig.librarySecretHash()
+    if(secretHash && !PasswordHash.verify(__secret, secretHash)) {
+      throw new NotOnLibraryTerminalError()
+    }
+  }
 
   await dbManager.withAtomicAsync(async db => {
     const username = isAdmin ? __username : context.user!.username
@@ -110,7 +127,7 @@ export async function handleBorrow(req: Request, res: Response, op: 'borrow' | '
     if(isAdmin){
       const user = await db.queryEntityAsync(
         [User.withDerivatives],
-        SqlClause.selectAnythingWhereDict(joinPresets.users, { username })
+        SqlClause.selectAnyUserWhereDict({ username })
       )
       if(!user) {
         throw new NotFoundError(username)
@@ -200,7 +217,7 @@ export async function handleBorrow(req: Request, res: Response, op: 'borrow' | '
 export default function routeBorrow(app: Express) {
   routeBorrowManage(app)
 
-  app.get('/api/borrow/my', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/borrow/my', ApiHandlerWrap.wrap(async (req, res) => {
     await handleBorrowList(req, res, false)
   }))
 
@@ -216,7 +233,7 @@ export default function routeBorrow(app: Express) {
     await handleBorrow(req, res, 'return', false)
   }))
 
-  app.get('/api/borrow/check', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/borrow/check', ApiHandlerWrap.wrap(async (req, res) => {
     const curTime = Math.floor((+new Date()) / 1000)
     const context = await gatherContextAsync(req)
 
@@ -225,15 +242,15 @@ export default function routeBorrow(app: Express) {
     })
 
     await dbManager.withAtomicAsync(async db => {
-      const stock = await db.queryEntityAsync(
-        [Stock.withDerivative],
-        SqlClause.selectAnythingWhereDict(joinPresets.stocks, {
+      const stock = Stock.fromExtDict(await db.queryOneAsync(
+        SqlClause.selectAnythingWhereDict(joinPresets.stocks_ext, {
           barcode: barcode
         })
-      )
+      ))
       if(!stock) {
         throw new NotFoundError(barcode)
       }
+      stock.__hasDerivatives = false
 
       const borrowed = stock.borrowed
       const borrowed_due = borrowed ? stock.borrowed_due : 0
@@ -241,7 +258,8 @@ export default function routeBorrow(app: Express) {
       const deprecated = stock.deprecated
 
       show_success(res, {
-        borrowed, borrowed_due, borrowed_by_you, deprecated
+        borrowed, borrowed_due, borrowed_by_you, deprecated,
+        $stock: EntityUtils.toDisplayDict(stock, false)
       })
     })
   }))

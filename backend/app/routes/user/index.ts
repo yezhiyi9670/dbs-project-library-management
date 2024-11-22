@@ -20,7 +20,7 @@ export default function routeUser(app: Express) {
   routeUserPasswordReset(app)
   routeUserManage(app)
 
-  app.get('/api/user/info', ApiHandlerWrap.wrap(async (req, res) => {
+  app.post('/api/user/info', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await gatherContextAsync(req)
     show_success(res,
       EntityUtils.toDisplayDict(context.user, false)

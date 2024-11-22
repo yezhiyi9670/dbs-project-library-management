@@ -41,6 +41,16 @@ export namespace SqlClause {
     return `${selectAnything(table)} ${whereClauseFromDict(dict)}`
   }
 
+  export function selectAnyUser() {
+    const curTime = Math.floor((+new Date()) / 1000)
+    return 'SELECT *, coalesce(overdue_borrows, 0) overdue_borrows from ' + escapeIdOrJoins(joinPresets.users) + ' natural left outer join ' + `(
+      SELECT username, count(*) overdue_borrows from ${SqlEscape.escapeId(tableInfo.name('borrows'))} Where (returned=1 and return_time>due_time) or (returned=0 and ${SqlEscape.escape(curTime)}>due_time) Group by username
+    ) as dynamic_overdue_borrows`
+  }
+  export function selectAnyUserWhereDict(dict: Object) {
+    return `${selectAnyUser()} ${whereClauseFromDict(dict)}`
+  }
+
   export function deleteAnything(table: TableOrViewName) {
     return 'DELETE from ' + SqlEscape.escapeId(tableInfo.name(table))
   }
@@ -89,6 +99,22 @@ export namespace SqlClause {
       throw TypeError('Expected pn and rn to be nullable numbers')
     }
     return `Limit ${(Math.max(0, pn - 1)) * rn}, ${rn}`
+  }
+  export function sortingClause(sort_by: unknown, sort_dir: unknown) {
+    // 注意：目前实现的排序有不致命的安全隐患——数据库中不允许用户查看的域也能用来排序
+    if(sort_by == null) {
+      return ''
+    }
+    if(sort_dir == null) {
+      sort_dir = 'asc'
+    }
+    if(typeof sort_by != 'string' || typeof sort_dir != 'string') {
+      return ''
+    }
+    if(sort_by.indexOf('.') != -1) {
+      sort_by = sort_by.substring(sort_by.lastIndexOf('.') + 1)
+    }
+    return `Order by ${sort_by} ${sort_dir}`
   }
 
   export function whereClauseFromAnd(conditions: string[]) {

@@ -36,6 +36,11 @@ export namespace Validation {
       validator_(field, item)
     })
   }
+  export function validateIsIn_(field: string, enums: unknown[], data: unknown) {
+    if(enums.indexOf(data) == -1) {
+      throw new FieldInvalidError(field, data)
+    }
+  }
   export function validateIsSet_(field: string, enums: unknown[], data: unknown) {
     if(!Array.isArray(data)) {
       throw new FieldInvalidError(field, data)
@@ -82,5 +87,9 @@ export namespace Validation {
   export const paginationInputs: {[key: string]: ValidatorSpecification} = {
     pn: [(k, v) => validateIsInt_(k, v)],
     rn: [(k, v) => validateIsInt_(k, v)]
+  }
+  export const sortingInputs: {[key: string]: ValidatorSpecification} = {
+    sort_by: [(k, v) => validateIsStr_(k, v)],
+    sort_dir: [(k, v) => validateIsIn_(k, ['asc', 'desc'], v)]
   }
 }

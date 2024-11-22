@@ -7,6 +7,7 @@ export default class User implements Entity {
   public borrows: number = 0
   public active_borrows: number = 0
   public overdue_records: number = 0
+  public overdue_borrows: number = 0
 
   constructor(
     public username: string = '',
@@ -49,7 +50,7 @@ export default class User implements Entity {
 
   derivativeFields() {
     return [
-      'borrows', 'active_borrows', 'overdue_records'
+      'borrows', 'active_borrows', 'overdue_records', 'overdue_borrows'
     ]
   }
 }

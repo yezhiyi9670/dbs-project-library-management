@@ -68,6 +68,9 @@ class GlobalConfigManager {
   sessionExpireTime(): number {
     return ConfigTyping.int(this.optionalEnv('SESSION_EXPIRE_TIME', '' + (86400 * 2)))
   }
+  librarySecretHash(): string {
+    return this.optionalEnv('LIBRARY_TERMINAL_SECRET_HASH', '')
+  }
   dryRun() {
     this.dbConnectionConfig()
     this.tableNamespace()
