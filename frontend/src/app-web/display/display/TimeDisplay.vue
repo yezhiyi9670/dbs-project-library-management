@@ -6,8 +6,9 @@ defineProps<{
 </script>
 
 <template>
-  <span :class="overdue ? 'time-overdue' : 'time-normal'">
+  <span>
     {{ new Date(timestamp * 1000).toLocaleString() }}
+    <v-icon v-if="overdue" icon="mdi-clock-alert-outline" />
   </span>
 </template>
 

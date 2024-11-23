@@ -2,6 +2,7 @@ import MalformedResponseError from '@library-management/common/error/network/Mal
 import NetworkError from '@library-management/common/error/network/NetworkError'
 import UserCausedError from '@library-management/common/error/UserCausedError'
 import UnknownError from '@library-management/common/error/unknown/UnknownError'
+import { apiErrorMessage } from './ApiErrorMessages'
 
 export namespace Api {
 
@@ -56,16 +57,15 @@ export namespace Api {
     return result
   }
 
-  export function errorMessage(error: Error, isIsForm: boolean = false) {
-    /* TODO: Make error message understandable */
-    return error.code + '(' + error.args.join(', ') + ')'
+  export function errorMessage(error: Error, isForm: boolean = false) {
+    return apiErrorMessage(error, isForm)
   }
 
-  export function validationRules(validators_: ((v: any) => void)[]) {
+  export function validationRules(validators_: ((v: any) => void)[], required: boolean = false) {
     return validators_.map(validator_ => {
       return function(v: any) {
         try {
-          if(!v) {
+          if(!required && !v) {
             return true
           }
           validator_(v)

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, Ref, watchEffect } from 'vue';
 import PermissionGuard from '../component/PermissionGuard.vue';
-import BorrowsFilterForm from '../form/BorrowsFilterForm.vue';
+import BorrowsFilterForm from '../form/filter/BorrowsFilterForm.vue';
 import Borrow from '@library-management/common/entity/borrow'
 import { useAppContext } from '../../context/AppContext';
 import { Api } from '../../api/Api';
 import { EntityUtils } from '@library-management/common/entity/EntityUtils';
-import TimeDisplay from '../display/TimeDisplay.vue';
+import TimeDisplay from '../display/display/TimeDisplay.vue';
+import TitleViewAction from '../display/actions/TitleViewAction.vue';
 
 const appContext = useAppContext()
 const conditions = ref<Object | null>(null)
@@ -45,17 +46,17 @@ watchEffect(async () => {
 <template>
   <PermissionGuard>
     <v-container>
-      <BorrowsFilterForm @change="v => conditions = v" />
+      <BorrowsFilterForm :loading="loading" @change="v => conditions = v" />
 
       <v-card class="mt-4">
         <v-data-table-server
           :headers="[
-            {key: '__.title', title: '书目', minWidth: '160px'},
-            {key: 'barcode', title: '藏书条码', minWidth: '160px'},
-            {key: 'borrow_time', title: '借出时间', minWidth: '160px'},
-            {key: 'due_time', title: '截止时间', minWidth: '160px'},
-            {key: 'return_time', title: '归还时间', minWidth: '160px'},
-            {key: '__.price_milliunit', title: '价格', minWidth: '90px'},
+            {key: '__.title', title: '书目'},
+            {key: 'barcode', title: '藏书条码'},
+            {key: 'borrow_time', title: '借出时间'},
+            {key: 'due_time', title: '截止时间'},
+            {key: 'return_time', title: '归还时间'},
+            {key: '__.price_milliunit', title: '价格'},
           ]"
           v-model:sort-by="sortBy"
           v-model:page="page"
@@ -65,7 +66,7 @@ watchEffect(async () => {
           :loading="loading"
         >
           <template v-slot:item.__.title="{ item }">
-            <RouterLink target="_blank" :to="'/book-details/' + item.$stock?.$title?.book_number">{{ item.$stock?.$title?.title }}</RouterLink>
+            <TitleViewAction :title="item.$stock!.$title!" />
           </template>
           <template v-slot:item.__.price_milliunit="{ item }">
             {{ (item.$stock!.$title!.price_milliunit / 1000).toFixed(2) }}

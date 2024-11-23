@@ -46,8 +46,8 @@ export default function routeTitle(app: Express) {
       accessible, year_min, year_max, status, pn, rn, sort_by, sort_dir
     } = Validation.getApiInputs_(req.body, {
       search_key: [Validation.validateIsStr_],
-      book_number: [(k, v) => TitleValidation.validateBookNumber_(v)],
-      barcode: [(k, v) => StockValidation.validateBarcode_(v)],
+      book_number: [Validation.validateIsStr_],
+      barcode: [Validation.validateIsStr_],
       title: [Validation.validateIsStr_],
       author: [Validation.validateIsStr_],
       publisher: [Validation.validateIsStr_],

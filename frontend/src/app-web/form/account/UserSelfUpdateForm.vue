@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Api } from '../../api/Api';
-import { useAppContext } from '../../context/AppContext';
+import { Api } from '../../../api/Api';
+import { useAppContext } from '../../../context/AppContext';
 import { EntityUtils } from '@library-management/common/entity/EntityUtils';
 import User from '@library-management/common/entity/user';
 import { UserValidation } from '@library-management/common/entity/user/validation';
@@ -87,6 +87,7 @@ async function handleSubmit() {
       />
     </v-form>
     <v-btn
+      :loading="loading"
       :disabled="!valid || loading"
       color="primary"
       text="确定"

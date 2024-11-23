@@ -8,15 +8,16 @@ defineProps<{
 </script>
 
 <template>
-  <div class="accessible-display">
+  <div class="book-title-display">
     <RouterLink :to="'/book-details/' + title.book_number" target="_blank">
+      {{ title.title }}
       <v-icon icon="mdi-arrow-right" />
     </RouterLink>
   </div>
 </template>
 
 <style scoped>
-  .accessible-display {
+  .book-title-display {
     display: flex;
     gap: 4px;
   }

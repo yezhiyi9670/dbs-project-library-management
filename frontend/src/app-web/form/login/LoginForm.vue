@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import { Api } from '../../api/Api';
-import { useAppContext } from '../../context/AppContext';
+import { nextTick, ref, useTemplateRef, watch, watchEffect } from 'vue';
+import { Api } from '../../../api/Api';
+import { useAppContext } from '../../../context/AppContext';
 import { EntityUtils } from '@library-management/common/entity/EntityUtils';
 import User from '@library-management/common/entity/user';
 
@@ -37,6 +37,13 @@ async function handleLogin() {
   }
 }
 
+const firstField = useTemplateRef('first-field')
+watch(firstField, () => {
+  setTimeout(() => {
+    firstField.value?.focus()
+  }, 10) // Temp hack. Without timeout it does not work.
+})
+
 </script>
 <template>
   
@@ -46,6 +53,7 @@ async function handleLogin() {
       <v-card-text class="mt-2">
         <v-form v-model="valid">
           <v-text-field
+            ref="first-field"
             v-model="username"
             label="用户名"
             :rules="[v => !!v]"
@@ -60,6 +68,7 @@ async function handleLogin() {
           />
         </v-form>
         <v-btn
+          :loading="loading"
           :disabled="!valid || loading"
           color="primary"
           text="登录"

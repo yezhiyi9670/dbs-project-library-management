@@ -26,8 +26,9 @@ export default function routeUserManage(app: Express) {
   app.post('/api/user/manage/list', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await getContextAsync(req)
 
-    let { search_key, overdue_min, roles, pn, rn, sort_by, sort_dir } = Validation.getApiInputs_(req.body, {
+    let { search_key, username, overdue_min, roles, pn, rn, sort_by, sort_dir } = Validation.getApiInputs_(req.body, {
       search_key: [Validation.validateIsStr_],
+      username: [Validation.validateIsStr_],
       overdue_min: [Validation.validateIsInt_],
       roles: [(k, v) => Validation.validateIsListOf_(k, (k, v) => UserValidation.validateRole_(v), v)],
       ...Validation.paginationInputs,
@@ -38,6 +39,9 @@ export default function routeUserManage(app: Express) {
       const whereClause = SqlClause.whereClauseFromAnd([
         ...(search_key ? [
           `username like ${SqlEscape.escapeLikeContains(search_key)} or display_name like ${SqlEscape.escapeLikeContains(search_key)}`
+        ] : []),
+        ...(username ? [
+          `username = ${SqlEscape.escape(username)}`
         ] : []),
         ...(roles ? [
           SqlClause.containsCondition('role', roles as string[])

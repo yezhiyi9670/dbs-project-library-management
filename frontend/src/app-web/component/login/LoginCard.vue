@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useAppContext } from '../../../context/AppContext';
-import LoginForm from '../../form/LoginForm.vue';
-import LogoutForm from '../../form/LogoutForm.vue';
+import LoginForm from '../../form/login/LoginForm.vue';
+import LogoutForm from '../../form/login/LogoutForm.vue';
 
 const appContext = useAppContext()
 

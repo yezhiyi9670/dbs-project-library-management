@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, effect, ref } from 'vue';
+import { computed, watchEffect, ref } from 'vue';
 import LibraryIntroduction from '../../branding/LibraryIntroduction.vue';
 import { useAppContext } from '../../context/AppContext';
 import StatDisplay, { StatEntry } from '../component/StatDisplay.vue';
 import { Api } from '../../api/Api';
 import { borrows__historical, borrows__overdue } from '../intent/intents';
+import LibraryHomepageFooter from '../../branding/LibraryHomepageFooter.vue';
 
 type StatsData = {
   "title_count": number,
@@ -25,7 +26,7 @@ const statsData = ref<null | StatsData>(null)
 
 const loading = ref<"loading" | "error" | "success">('loading')
 
-effect(async () => {
+watchEffect(async () => {
   const apiReturn = await appContext.value.post('stats')
   if(apiReturn.success) {
     loading.value = 'success'
@@ -103,6 +104,13 @@ const stats = computed(() => {
       ...(context.canManageBooks() && { link: { label: '书目管理', to: '/manage/titles' } })
     })
   }
+  if(data.deprecated_count != null) {
+    ret.push({
+      label: '待淘汰数量',
+      figure: data.deprecated_count,
+      ...(context.canManageBooks() && { link: { label: '藏书管理', to: '/manage/titles' } })
+    })
+  }
 
   return ret
 })
@@ -114,7 +122,7 @@ const stats = computed(() => {
     <LibraryIntroduction />
 
     <v-fade-transition>
-      <v-row v-if="stats" class="mt-6">
+      <v-row v-if="stats" class="mt-4 mb-4">
         <v-col
           v-for="stat in stats"
           cols=12 sm=6 md=4 lg=3
@@ -123,5 +131,7 @@ const stats = computed(() => {
         </v-col>
       </v-row>
     </v-fade-transition>
+
+    <LibraryHomepageFooter />
   </v-container>
 </template>

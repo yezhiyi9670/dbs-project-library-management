@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { effect, ref } from 'vue';
 import ToCenter from '../../component/ToCenter.vue';
 import { Api } from '../../api/Api';
 import { useAppContext } from '../../context/AppContext';
@@ -21,7 +20,7 @@ async function handleLogout() {
   }
 }
 
-effect(() => handleLogout())
+handleLogout()
 
 </script>
 <template>

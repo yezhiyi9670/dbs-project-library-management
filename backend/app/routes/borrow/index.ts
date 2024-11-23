@@ -139,16 +139,18 @@ export async function handleBorrow(req: Request, res: Response, op: 'borrow' | '
       }
     }
 
+    // Share the stock info. We need to check if it exists.
+    const stock = await db.queryEntityAsync(
+      [Stock.withDerivative],
+      SqlClause.selectAnythingWhereDict(joinPresets.stocks, {
+        barcode: barcode
+      })
+    )
+    if(!stock) {
+      throw new NotFoundError(barcode)
+    }
+
     if(op == 'borrow') {
-      const stock = await db.queryEntityAsync(
-        [Stock.withDerivative],
-        SqlClause.selectAnythingWhereDict(joinPresets.stocks, {
-          barcode: barcode
-        })
-      )
-      if(!stock) {
-        throw new NotFoundError(barcode)
-      }
       if(stock.borrowed) {
         throw new AlreadyBorrowedError(barcode)
       }

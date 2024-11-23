@@ -2,6 +2,7 @@ import { inject, InjectionKey, Ref } from "vue"
 import User from '@library-management/common/entity/user'
 import ToastManager from "./ToastManager"
 import { Api } from "../api/Api"
+import { UserRole } from "@library-management/common/entity/user/role"
 
 export type AppContextData = {
   version: string,
@@ -37,6 +38,18 @@ export class AppContext {
   canManageUsers() {
     return this.data.user && (this.data.user.role == 'Root' || this.data.user.role == 'Admin')
   }
+  canManageUserOfRole(role: UserRole) {
+    if(!this.data.user) {
+      return false
+    }
+    const myRole = this.data.user.role
+    if(myRole == UserRole.Root) {
+      return role != UserRole.Root
+    }
+    if(myRole == UserRole.Admin) {
+      return role != UserRole.Root && role != UserRole.Admin
+    }
+  }
   getUsername() {
     if(!this.data.user) {
       return ''
@@ -47,7 +60,11 @@ export class AppContext {
     if(!this.data.user) {
       return ''
     }
-    return this.data.user.display_name
+    const display_name = this.data.user.display_name
+    if('' == display_name) {
+      return this.getUsername()
+    }
+    return display_name
   }
 
   setUser(user: User | null) {
@@ -66,23 +83,34 @@ export class AppContext {
     return await Api.post(path, { ...data, __session: this.data.session })
   }
 
+  private __putIntent(intent: any) {
+    localStorage[this.data.config.cookiePrefix + '__' + 'intent'] = JSON.stringify(intent)
+  }
+  private __getIntent() {
+    try {
+      return JSON.parse(localStorage[this.data.config.cookiePrefix + '__' + 'intent'])
+    } catch(err) {
+      return null
+    }
+  }
+
   putIntent(intent: any) {
-    globalIntent = intent
+    this.__putIntent(intent)
     if(null != globalIntentTimeout) {
       clearTimeout(globalIntentTimeout)
     }
-    globalIntentTimeout = setTimeout(() => {
-      globalIntent = undefined
-      globalIntentTimeout = null
-    }, 2000)
+    // globalIntentTimeout = setTimeout(() => {
+    //   this.__putIntent(null)
+    //   globalIntentTimeout = null
+    // }, 30000)
   }
 
   getIntent() {
-    const bak = globalIntent
+    const bak = this.__getIntent()
     if(null != globalIntentTimeout) {
       clearTimeout(globalIntentTimeout)
     }
-    globalIntent = undefined
+    this.__putIntent(null)
     return bak
   }
 }

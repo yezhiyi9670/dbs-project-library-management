@@ -48,12 +48,12 @@ const groups: Ref<MenuGroup[]> = computed(() => {
       {
         label: '内容管理',
         links: [
-          ...(context.canManageUsers() ? [makeEntry('mdi-account-edit-outline', '用户管理', '/manage/users')] : []),
           ...(context.canManageBooks() ? [
             makeEntry('mdi-book-edit-outline', '书目管理', '/manage/titles'),
             makeEntry('mdi-layers-edit', '藏书管理', '/manage/stocks'),
             makeEntry('mdi-invoice-edit-outline', '借阅记录管理', '/manage/borrows')
-          ] : [])
+          ] : []),
+          ...(context.canManageUsers() ? [makeEntry('mdi-account-edit-outline', '用户管理', '/manage/users')] : []),
         ]
       }
     ] : []),

@@ -40,8 +40,8 @@ export default class Title implements Entity {
     TitleValidation.validatePlace_(this.place)
     TitleValidation.validateUrl_(this.url)
     TitleValidation.validatePrice_(this.price_milliunit)
-    TitleValidation.validateDescription(this.description)
-    TitleValidation.validateToPurchaseAmount(this.to_purchase_amount)
+    TitleValidation.validateDescription_(this.description)
+    TitleValidation.validateToPurchaseAmount_(this.to_purchase_amount)
   }
 
   sensitiveFields(isManageApi: boolean) {

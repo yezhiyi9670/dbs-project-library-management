@@ -29,10 +29,13 @@ export namespace TitleValidation {
   export function validatePrice_(data: number) {
     Validation.validateIsInt_('price_milliunit', data)
   }
-  export function validateDescription(data: string) {
+  export function validateDescription_(data: string) {
     Validation.validateMaxStrLen_('description', 65535, data)
   }
-  export function validateToPurchaseAmount(data: number) {
+  export function validateToPurchaseAmount_(data: number) {
     Validation.validateIsInt_('to_purchase_amount', data)
+    if(data < 0) {
+      throw new FieldInvalidError('to_purchase_amount', data)
+    }
   }
 }

@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Api } from '../../api/Api';
-import { useAppContext } from '../../context/AppContext';
-import { EntityUtils } from '@library-management/common/entity/EntityUtils';
-import User from '@library-management/common/entity/user';
+import { Api } from '../../../api/Api';
+import { useAppContext } from '../../../context/AppContext';
 
 const appContext = useAppContext()
 
@@ -25,6 +23,7 @@ async function handleSubmit() {
 <template>
   <div>
     <v-btn
+      :loading="loading"
       :disabled="loading"
       color="tertiary"
       text="登出其他设备"

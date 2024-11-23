@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router';
 import ToCenter from '../../component/ToCenter.vue';
 import ReturnButton from '../component/ReturnButton.vue';
 import SmallerMainTitle from '../component/SmallerMainTitle.vue';
-import { ref } from 'vue';
+import { ref, useTemplateRef, watch, watchEffect } from 'vue';
 import { useAppContext } from '../../context/AppContext';
 import { Api } from '../../api/Api';
 import { EntityUtils } from '@library-management/common/entity/EntityUtils';
@@ -39,6 +39,12 @@ async function handleLogin() {
   }
 }
 
+const firstField = useTemplateRef('first-field')
+watch(firstField, () => {
+  // watchEffect makes it impossible to switch to other fields
+  firstField.value?.focus()
+})
+
 </script>
 
 <template>
@@ -50,6 +56,7 @@ async function handleLogin() {
     <div style="width: 60%; margin: 0 auto;" @keydown.enter="handleLogin">
       <v-form v-model="valid">
         <v-text-field
+          ref="first-field"
           v-model="username"
           label="用户名"
           :rules="[v => !!v]"
@@ -66,6 +73,7 @@ async function handleLogin() {
       <v-btn
         size="large"
         :disabled="!valid || loading"
+        :loading="loading"
         color="primary"
         text="登录"
         @click="handleLogin"

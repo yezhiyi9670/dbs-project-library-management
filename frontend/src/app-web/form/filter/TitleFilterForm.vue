@@ -2,10 +2,25 @@
 import { computed, nextTick, ref, watch, watchEffect } from 'vue';
 import { FilterTyping } from '@library-management/common/typing/FilterTyping'
 import { RandomToken } from '@library-management/common/crypto/RandomToken';
+import { useAppContext } from '../../../context/AppContext';
+import { titles__filter_book_number } from '../../intent/intents';
 
-const emit = defineEmits<{
-  change: [conditions: Object]
+const props = defineProps<{
+  loading: boolean,
+  canAdd?: boolean
 }>()
+const emit = defineEmits<{
+  change: [conditions: Object],
+  add: []
+}>()
+
+const appContext = useAppContext()
+const intent = appContext.value.getIntent()
+
+let book_number_init = ''
+if(Array.isArray(intent) && intent[0] == titles__filter_book_number) {
+  book_number_init = intent[1]
+}
 
 const dirty = ref(false)
 
@@ -13,7 +28,8 @@ export type TitleAccessible = 'offline' | 'online'
 export type TitleStatus = 'borrowable' | 'borrowed' | 'unavailable' | 'empty'
 
 const seq = ref<string>('')
-const book_number = ref<string>('')
+const book_number = ref<string>(book_number_init)
+const barcode = ref<string>('')
 const title = ref<string>('')
 const author = ref<string>('')
 const publisher = ref<string>('')
@@ -25,6 +41,7 @@ const year_max = ref<string>('')
 const conditions = computed(() => ({
   __seq: seq.value,
   book_number: FilterTyping.toString(book_number.value),
+  barcode: FilterTyping.toString(barcode.value),
   title: FilterTyping.toString(title.value),
   author: FilterTyping.toString(author.value),
   publisher: FilterTyping.toString(publisher.value),
@@ -67,7 +84,15 @@ emit('change', conditions.value)
               v-model="book_number"
               density="compact"
               hide-details
-              label="书号"
+              label="书号（精准匹配）"
+            />
+          </v-col>
+          <v-col :="colSpec">
+            <v-text-field
+              v-model="barcode"
+              density="compact"
+              hide-details
+              label="藏书条码（精准匹配）"
             />
           </v-col>
           <v-col :="colSpec">
@@ -114,7 +139,7 @@ emit('change', conditions.value)
           </v-col>
           <v-col :="colSpec">
             <v-select
-              label="可访问方式 (and)"
+              label="可访问方式（合取）"
               density="compact"
               v-model="accessible"
               hide-details
@@ -127,7 +152,7 @@ emit('change', conditions.value)
           </v-col>
           <v-col :="colSpec">
             <v-select
-              label="物理藏书状态 (or)"
+              label="物理藏书状态（析取）"
               density="compact"
               v-model="status"
               hide-details
@@ -141,8 +166,11 @@ emit('change', conditions.value)
             />
           </v-col>
           <v-col :="colSpec">
-            <v-btn :color="dirty ? 'primary' : 'secondary'" @click="refresh">
-              {{ dirty ? '更新筛选条件' : '刷新查询' }}
+            <v-btn :disabled="loading" :loading="loading" :color="dirty ? 'primary' : 'tertiary'" @click="refresh">
+              {{ dirty ? '更新筛选' : '刷新查询' }}
+            </v-btn>
+            <v-btn @click="emit('add')" v-if="canAdd" class="ml-2">
+              <v-icon icon="mdi-plus" /> 新建书目
             </v-btn>
           </v-col>
         </v-row>

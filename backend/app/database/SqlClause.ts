@@ -43,8 +43,8 @@ export namespace SqlClause {
 
   export function selectAnyUser() {
     const curTime = Math.floor((+new Date()) / 1000)
-    return 'SELECT *, coalesce(overdue_borrows, 0) overdue_borrows from ' + escapeIdOrJoins(joinPresets.users) + ' natural left outer join ' + `(
-      SELECT username, count(*) overdue_borrows from ${SqlEscape.escapeId(tableInfo.name('borrows'))} Where (returned=1 and return_time>due_time) or (returned=0 and ${SqlEscape.escape(curTime)}>due_time) Group by username
+    return 'SELECT *, coalesce(overdue_borrows_n, 0) overdue_borrows from ' + escapeIdOrJoins(joinPresets.users) + ' natural left outer join ' + `(
+      SELECT username, count(*) overdue_borrows_n from ${SqlEscape.escapeId(tableInfo.name('borrows'))} Where (returned=1 and return_time>due_time) or (returned=0 and ${SqlEscape.escape(curTime)}>due_time) Group by username
     ) as dynamic_overdue_borrows`
   }
   export function selectAnyUserWhereDict(dict: Object) {
@@ -97,6 +97,9 @@ export namespace SqlClause {
     }
     if(typeof pn != 'number' || typeof rn != 'number') {
       throw TypeError('Expected pn and rn to be nullable numbers')
+    }
+    if(rn < 0) {  // The datatable component use -1 to represent all.
+      return ''
     }
     return `Limit ${(Math.max(0, pn - 1)) * rn}, ${rn}`
   }

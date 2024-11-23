@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { effect, provide, Ref, ref } from 'vue';
+import { watchEffect, provide, Ref, ref } from 'vue';
 import InitLoading from './common/InitLoading.vue';
 import { AppContext, AppContextInject } from './context/AppContext';
 import { Api } from './api/Api';
@@ -11,7 +11,7 @@ const appContext: Ref<AppContext | undefined> = ref(undefined)
 provide(AppContextInject, appContext)
 
 const loading = ref<'loading' | 'success' | 'error'>('loading')
-effect(async () => {
+watchEffect(async () => {
   for(let i = 0; i < 3; i++) {
     const apiReturn = await Api.post('')
     if(apiReturn.success) {

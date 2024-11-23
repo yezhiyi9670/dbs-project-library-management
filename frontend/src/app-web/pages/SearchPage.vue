@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { Ref, ref, watch, watchEffect } from 'vue';
-import TitleFilterForm from '../form/TitleFilterForm.vue';
+import TitleFilterForm from '../form/filter/TitleFilterForm.vue';
 import { useAppContext } from '../../context/AppContext';
 import { Api } from '../../api/Api';
 import Title from '@library-management/common/entity/title'
 import { EntityUtils } from '@library-management/common/entity/EntityUtils';
-import TitleAccessibleDisplay from '../display/TitleAccessibleDisplay.vue';
-import TitleViewAction from '../display/TitleViewAction.vue';
+import TitleAccessibleDisplay from '../display/display/TitleAccessibleDisplay.vue';
+import TitleViewAction from '../display/actions/TitleViewAction.vue';
 
 const appContext = useAppContext()
 const conditions = ref<Object | null>(null)
@@ -43,19 +43,18 @@ watchEffect(async () => {
 
 <template>
   <v-container>
-    <TitleFilterForm @change="v => conditions = v" />
+    <TitleFilterForm :loading="loading" @change="v => conditions = v" />
 
     <v-card class="mt-4">
       <v-data-table-server
         :headers="[
-          {key: 'book_number', title: '书号', minWidth: '160px'},
-          {key: 'title', title: '书名', minWidth: '160px'},
-          {key: 'author', title: '作者', minWidth: '160px'},
-          {key: 'publisher', title: '出版社', minWidth: '160px'},
-          {key: 'year', title: '年份', minWidth: '90px'},
-          {key: '__borrowables', title: '可借数量', sortable: false, minWidth: '110px'},
-          {key: '__accessible', title: '访问方式', sortable: false, minWidth: '110px'},
-          {key: '__actions', title: '详情', sortable: false, minWidth: '90px'},
+          {key: 'book_number', title: '书号'},
+          {key: 'title', title: '书名'},
+          {key: 'author', title: '作者'},
+          {key: 'publisher', title: '出版社'},
+          {key: 'year', title: '年份'},
+          {key: '__borrowables', title: '可借数量', sortable: false},
+          {key: '__accessible', title: '访问方式', sortable: false},
         ]"
         v-model:sort-by="sortBy"
         v-model:page="page"
@@ -64,6 +63,9 @@ watchEffect(async () => {
         :items-length="totalItems"
         :loading="loading"
       >
+        <template v-slot:item.title="{ item }">
+          <TitleViewAction :title="item" />
+        </template>
         <template v-slot:item.__borrowables="{ item }">
           {{
             item.total - item.deprecated - item.borrowed + item.deprecated_and_borrowed
@@ -73,9 +75,6 @@ watchEffect(async () => {
         </template>
         <template v-slot:item.__accessible="{ item }">
           <TitleAccessibleDisplay :title="item" />
-        </template>
-        <template v-slot:item.__actions="{ item }">
-          <TitleViewAction :title="item" />
         </template>
       </v-data-table-server>
     </v-card>

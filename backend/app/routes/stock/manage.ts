@@ -14,6 +14,7 @@ import { EntityUtils } from '@library-management/common/entity/EntityUtils'
 import AlreadyExistsError from '@library-management/common/error/entity/AlreadyExistsError'
 import { SqlEscape } from '../../database/SqlEscape'
 import BadSortingError from '@library-management/common/error/entity/BadSortingError'
+import tableInfo from '../../database/tableInfo'
 
 async function getContextAsync(req: Request) {
   const context = await gatherContextAsync(req)
@@ -45,7 +46,7 @@ export default function routeStockManage(app: Express) {
     const curTime = Math.floor((+new Date())/1000)
 
     const { book_number, barcode_prefix, deprecated, borrowed, pn, rn, sort_by, sort_dir } = Validation.getApiInputs_(req.body, {
-      book_number: [(k, v) => StockValidation.validateBookNumber_(v)],
+      book_number: [Validation.validateIsStr_],
       barcode_prefix: [Validation.validateIsStr_],
       deprecated: [(k, v) => Validation.validateIsSet_(k, [false, true], v)],
       borrowed: [(k, v) => Validation.validateIsSet_(k, ['none', 'normal', 'overdue'], v)],
@@ -100,9 +101,10 @@ export default function routeStockManage(app: Express) {
   app.post('/api/stock/manage/enroll', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await getContextAsync(req)
 
-    const { book_number, barcode } = Validation.getApiInputs_(req.body, {
+    const { book_number, barcode, decrease_to_purchase } = Validation.getApiInputs_(req.body, {
       book_number: (k, v) => StockValidation.validateBookNumber_(v),
-      barcode: (k, v) => StockValidation.validateBarcode_(v)
+      barcode: (k, v) => StockValidation.validateBarcode_(v),
+      decrease_to_purchase: [Validation.validateIsBool_]
     })
 
     await dbManager.withAtomicAsync(async db => {
@@ -120,6 +122,10 @@ export default function routeStockManage(app: Express) {
           'ER_NO_REFERENCED_ROW_2': () => new NotFoundError(book_number),
           'ER_DUP_ENTRY': () => new AlreadyExistsError(barcode)
         })
+      }
+
+      if(decrease_to_purchase) {
+        await db.queryAsync(`UPDATE ${SqlEscape.escapeId(tableInfo.name('titles'))} set to_purchase_amount=greatest(to_purchase_amount-1,0) Where book_number=${SqlEscape.escape(book_number)}`)
       }
 
       const newStock = Stock.fromExtDict(await db.queryOneAsync(SqlClause.selectAnythingWhereDict(

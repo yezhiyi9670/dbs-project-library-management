@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, effect, ref } from 'vue';
+import { computed, watchEffect, ref } from 'vue';
 import { useAppContext } from '../../context/AppContext';
 import { useRoute } from 'vue-router';
 import { Api } from '../../api/Api';
@@ -8,6 +8,7 @@ import { EntityUtils } from '@library-management/common/entity/EntityUtils';
 import FullscreenError from '../error-pages/FullscreenError.vue';
 import StatDisplay, { StatEntry } from '../component/StatDisplay.vue';
 import { LIBRARY_NAME } from '../../branding/titles';
+import FullscreenLoading from '../error-pages/FullscreenLoading.vue';
 
 const appContext = useAppContext()
 
@@ -15,7 +16,7 @@ const entryInfo = ref<Title | null>(null)
 const loading = ref<'loading' | 'success' | 'error'>('loading')
 const route = useRoute()
 
-effect(async () => {
+watchEffect(async () => {
   loading.value = 'loading'
   entryInfo.value = null
   if(!route.params['book_number']) {
@@ -71,58 +72,56 @@ const stats = computed<StatEntry[]>(() => {
 </script>
 
 <template>
-  <v-fade-transition>
-    <FullscreenError v-if="loading == 'error'">
-      数据加载失败
-    </FullscreenError>
-  </v-fade-transition>
-  <v-fade-transition>
-    <v-container style="user-select: text" v-if="entryInfo">
-      <h1 class="mb-4">{{ entryInfo.title }}</h1>
-      <p class="mb-4"><code>{{ entryInfo.book_number }}</code></p>
-      
-      <table class="mb-4">
-        <tbody>
-          <tr>
-            <th class="details-field">作者</th>
-            <td>{{ entryInfo.author }}</td>
-          </tr>
-          <tr>
-            <th class="details-field">出版社</th>
-            <td>{{ entryInfo.publisher }}</td>
-          </tr>
-          <tr>
-            <th class="details-field">年份</th>
-            <td>{{ entryInfo.year }}</td>
-          </tr>
-          <tr>
-            <th class="details-field">价格</th>
-            <td>{{ (entryInfo.price_milliunit / 1000).toFixed(2) }}</td>
-          </tr>
-          <tr v-if="entryInfo.place">
-            <th class="details-field">藏书地点</th>
-            <td>{{ entryInfo.place }}</td>
-          </tr>
-          <tr v-if="entryInfo.url">
-            <th class="details-field">在线阅读</th>
-            <td><a target="_blank" :href="entryInfo.url">{{ entryInfo.url }}</a></td>
-          </tr>
-        </tbody>
-      </table>
+  <FullscreenError v-if="loading == 'error'">
+    数据加载失败
+  </FullscreenError>
+  <v-container style="user-select: text;" v-if="entryInfo">
+    <h1 class="mb-4">{{ entryInfo.title }}</h1>
+    <p class="mb-4"><code>{{ entryInfo.book_number }}</code></p>
+    
+    <table class="mb-4">
+      <tbody>
+        <tr>
+          <th class="details-field">作者</th>
+          <td>{{ entryInfo.author }}</td>
+        </tr>
+        <tr>
+          <th class="details-field">出版社</th>
+          <td>{{ entryInfo.publisher }}</td>
+        </tr>
+        <tr>
+          <th class="details-field">年份</th>
+          <td>{{ entryInfo.year }}</td>
+        </tr>
+        <tr>
+          <th class="details-field">价格</th>
+          <td>{{ (entryInfo.price_milliunit / 1000).toFixed(2) }}</td>
+        </tr>
+        <tr v-if="entryInfo.place">
+          <th class="details-field">藏书地点</th>
+          <td>{{ entryInfo.place }}</td>
+        </tr>
+        <tr v-if="entryInfo.url">
+          <th class="details-field">在线阅读</th>
+          <td><a target="_blank" :href="entryInfo.url">{{ entryInfo.url }}</a></td>
+        </tr>
+      </tbody>
+    </table>
 
-      <p class="mb-4" style="white-space: pre-wrap">{{ entryInfo.description ? entryInfo.description : '此书目没有详细描述' }}</p>
+    <p class="mb-4" style="white-space: pre-wrap">{{ entryInfo.description ? entryInfo.description : '此书目没有详细描述' }}</p>
 
-      <v-row v-if="entryInfo.place" class="mt-6">
-        <v-col
-          v-for="stat in stats"
-          cols=12 sm=6 md=4 lg=3
-        >
-          <StatDisplay :entry="stat" />
-        </v-col>
-      </v-row>
-      <p v-else>此书目没有线下藏书</p>
-    </v-container>
-  </v-fade-transition>
+    <v-row v-if="entryInfo.place" class="mt-6">
+      <v-col
+        v-for="stat in stats"
+        cols=12 sm=6 md=4 lg=3
+      >
+        <StatDisplay :entry="stat" />
+      </v-col>
+    </v-row>
+    <p v-else>此书目没有线下藏书</p>
+  </v-container>
+
+  <FullscreenLoading v-if="loading == 'loading'" />
 </template>
 
 <style scoped>

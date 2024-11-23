@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { Api } from '../../api/Api';
-import { useAppContext } from '../../context/AppContext';
+import { Api } from '../../../api/Api';
+import { useAppContext } from '../../../context/AppContext';
 
 const appContext = useAppContext()
 
@@ -33,6 +33,7 @@ async function handleLogout() {
       <p class="mb-6">你确定要登出吗？</p>
 
       <v-btn
+        :loading="loading"
         :disabled="loading"
         color="primary"
         text="登出"

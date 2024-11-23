@@ -20,6 +20,11 @@ export namespace Validation {
       throw new FieldInvalidError(field, data)
     }
   }
+  export function validateIsBool_(field: string, data: unknown) {
+    if(typeof data != 'boolean') {
+      throw new FieldInvalidError(field, data)
+    }
+  }
   export function validateMaxStrLen_(field: string, limit: number, data: unknown) {
     if(typeof data != 'string') {
       throw new FieldInvalidError(field, data)
