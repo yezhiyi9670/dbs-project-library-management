@@ -53,7 +53,7 @@ export function fieldName(name: string) {
 export function fieldInvalidMessage(name: string) {
   switch(name) {
     case 'email':
-      return `电子邮件必须含有 @ 字符`
+      return `电子邮箱必须含有 @ 字符`
     case 'password':
       return `密码不能为空`
     case 'book_numbers': case 'book_number': case 'old_book_number':
@@ -86,7 +86,7 @@ export function apiErrorMessage(error: Api.Error, isForm: boolean = false) {
     case 'login_required':
       return `此功能需要登录才能使用`
     case 'old_password_required':
-      return `需要原密码才能修改${fieldName(args[0])}`
+      return `需要正确的原密码才能修改${fieldName(args[0])}`
     case 'permission_denied':
       return `权限不够`
     case 'user_disabled':

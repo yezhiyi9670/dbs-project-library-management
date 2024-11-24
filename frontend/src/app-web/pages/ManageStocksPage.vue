@@ -13,6 +13,7 @@ import StockEditForm from '../form/edit/StockEditForm.vue';
 import BookNumberLink from '../display/link/BookNumberLink.vue';
 import UsernameLink from '../display/link/UsernameLink.vue';
 import PermissionGuard from '../component/PermissionGuard.vue';
+import TimeDisplay from '../display/display/TimeDisplay.vue';
 
 const appContext = useAppContext()
 const conditions = ref<Object | null>(null)
@@ -162,7 +163,8 @@ async function handleToggle(item: Stock) {
             <UsernameLink v-if="item.borrowed" :username="item.borrowed_by" />
           </template>
           <template v-slot:item.borrowed_due="{ item }">
-            {{ item.borrowed ? (new Date(item.borrowed_due * 1000).toLocaleString()) : '未借阅' }}
+            <TimeDisplay v-if="item.borrowed" :timestamp="item.borrowed_due" :overdue="(+new Date()) > item.borrowed_due * 1000" />
+            <template v-else>未借阅</template>
           </template>
           <template v-slot:item.deprecated="{ item }">
             {{ item.deprecated ? '是' : '' }}

@@ -4,7 +4,7 @@ import LibraryIntroduction from '../../branding/LibraryIntroduction.vue';
 import { useAppContext } from '../../context/AppContext';
 import StatDisplay, { StatEntry } from '../component/StatDisplay.vue';
 import { Api } from '../../api/Api';
-import { borrows__historical, borrows__overdue } from '../intent/intents';
+import { borrows__historical, borrows__overdue, stocks__to_deprecate, titles__to_purchase } from '../intent/intents';
 import LibraryHomepageFooter from '../../branding/LibraryHomepageFooter.vue';
 
 type StatsData = {
@@ -94,21 +94,21 @@ const stats = computed(() => {
     ret.push({
       label: '待采购数量',
       figure: data.to_purchase_count,
-      ...(context.canManageBooks() && { link: { label: '书目管理', to: '/manage/titles' } })
+      ...(context.canManageBooks() && { link: { label: '书目管理', intent: titles__to_purchase, to: '/manage/titles' } })
     })
   }
   if(data.to_purchase_price != null) {
     ret.push({
       label: '待采购总金额',
       figure: (data.to_purchase_price / 1000).toFixed(2),
-      ...(context.canManageBooks() && { link: { label: '书目管理', to: '/manage/titles' } })
+      ...(context.canManageBooks() && { link: { label: '书目管理', intent: titles__to_purchase, to: '/manage/titles' } })
     })
   }
   if(data.deprecated_count != null) {
     ret.push({
       label: '待淘汰数量',
       figure: data.deprecated_count,
-      ...(context.canManageBooks() && { link: { label: '藏书管理', to: '/manage/titles' } })
+      ...(context.canManageBooks() && { link: { label: '藏书管理', intent: stocks__to_deprecate, to: '/manage/stocks' } })
     })
   }
 
@@ -121,7 +121,7 @@ const stats = computed(() => {
   <v-container style="user-select: text;">
     <LibraryIntroduction />
 
-    <v-fade-transition>
+    <v-expand-transition>
       <v-row v-if="stats" class="mt-4 mb-4">
         <v-col
           v-for="stat in stats"
@@ -130,7 +130,7 @@ const stats = computed(() => {
           <StatDisplay :entry="stat" />
         </v-col>
       </v-row>
-    </v-fade-transition>
+    </v-expand-transition>
 
     <LibraryHomepageFooter />
   </v-container>

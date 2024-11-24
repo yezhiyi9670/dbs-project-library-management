@@ -54,6 +54,9 @@ export function useBorrowMachine(apiBase: 'borrow/' | 'borrow/manage/') {
               msg += appContext.value.isLoggedIn() ? '此书正在被其他人借阅' : '此书正在被借阅'
             }
             msg += '，截止时间 ' + new Date(result.data.borrowed_due * 1000).toLocaleString()
+            if((+new Date()) > result.data.borrowed_due * 1000) {
+              msg += '，已逾期'
+            }
             entry.msg = msg
           } else {
             entry.msg = '此书现在可以借阅'

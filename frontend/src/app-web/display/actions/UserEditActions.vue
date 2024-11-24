@@ -26,6 +26,6 @@ const emit = defineEmits<{
 <style scoped>
   .actions-display {
     display: flex;
-    gap: 4px;
+    gap: 8px;
   }
 </style>

@@ -72,7 +72,7 @@ async function handleSubmit() {
       <v-text-field
         type="text"
         v-model="email"
-        label="邮箱"
+        label="电子邮箱"
         :rules="Api.validationRules([UserValidation.validateEmail_])"
       />
       <v-text-field

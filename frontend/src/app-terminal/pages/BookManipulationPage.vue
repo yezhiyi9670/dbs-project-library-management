@@ -71,7 +71,7 @@ function handleEnter() {
       </v-card>
       <div style="margin-top: 16px">
         <v-btn variant="tonal" style="width: 100%" size="large" :to="returnLink">
-          <v-icon icon="mdi-check" /> 完成
+          <v-icon icon="mdi-check" /> 结束
         </v-btn>
       </div>
     </div>

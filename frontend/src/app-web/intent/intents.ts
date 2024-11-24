@@ -7,4 +7,7 @@ export const stocks__filter_book_number = 'stocks__filter_book_number'
 export const stocks__filter_barcode = 'stocks__filter_barcode'
 export const titles__filter_book_number = 'titles__filter_book_number'
 
+export const titles__to_purchase = 'titles__to_purchase'
+export const stocks__to_deprecate = 'stocks__to_deprecate'
+
 export const users__filter_username = 'users__filter_username'

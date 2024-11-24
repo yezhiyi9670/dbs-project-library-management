@@ -11,10 +11,12 @@ import TitleEditForm from '../form/edit/TitleEditForm.vue';
 import { RandomToken } from '@library-management/common/crypto/RandomToken';
 import StockEnrollForm from '../form/edit/StockEnrollForm.vue';
 import { useRoute, useRouter } from 'vue-router';
-import { stocks__filter_book_number } from '../intent/intents';
+import { stocks__filter_book_number, titles__to_purchase } from '../intent/intents';
 import PermissionGuard from '../component/PermissionGuard.vue';
 
 const appContext = useAppContext()
+const intent = appContext.value.getIntent()
+
 const router = useRouter()
 const conditions = ref<Object | null>(null)
 const originalEntry = ref<Title | null>(null)
@@ -23,7 +25,7 @@ const serverItems: Ref<Title[]> = ref([])
 const loading = ref(true)
 const totalItems = ref(0)
 
-const sortBy = ref<any>([])
+const sortBy = ref<any>(intent == titles__to_purchase ? [{ key: 'to_purchase_amount', order: 'desc' }] : [])
 const itemsPerPage = ref(10)
 const page = ref(1)
 

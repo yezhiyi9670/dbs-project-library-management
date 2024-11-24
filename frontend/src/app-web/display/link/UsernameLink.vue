@@ -21,7 +21,8 @@ function handleClick(isNewTab: boolean) {
 </script>
 
 <template>
-  <a style="text-decoration: underline;" @click="handleClick(false)" @contextmenu.prevent="handleClick(true)" href="javascript:;">
+  <a v-if="appContext.canManageUsers()" style="text-decoration: underline;" @click="handleClick(false)" @contextmenu.prevent="handleClick(true)" href="javascript:;">
     {{ username }}
   </a>
+  <template v-else>{{ username }}</template>
 </template>
