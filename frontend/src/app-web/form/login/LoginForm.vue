@@ -53,6 +53,7 @@ watch(firstField, () => {
       <v-card-text class="mt-2">
         <v-form v-model="valid">
           <v-text-field
+            name="username"
             ref="first-field"
             v-model="username"
             label="用户名"
@@ -60,6 +61,7 @@ watch(firstField, () => {
             required
           />
           <v-text-field
+            name="password"
             v-model="password"
             label="密码"
             type="password"

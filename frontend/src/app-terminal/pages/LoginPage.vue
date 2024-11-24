@@ -56,6 +56,7 @@ watch(firstField, () => {
     <div style="width: 60%; margin: 0 auto;" @keydown.enter="handleLogin">
       <v-form v-model="valid">
         <v-text-field
+          name="username"
           ref="first-field"
           v-model="username"
           label="用户名"
@@ -63,6 +64,7 @@ watch(firstField, () => {
           required
         />
         <v-text-field
+          name="password"
           v-model="password"
           label="密码"
           type="password"

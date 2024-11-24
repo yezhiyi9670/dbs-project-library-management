@@ -27,7 +27,7 @@ const serverItems: Ref<User[]> = ref([])
 const loading = ref(true)
 const totalItems = ref(0)
 
-const sortBy = ref<any>([])
+const sortBy = ref<any>([{ key: 'role', order: 'asc' }])
 const itemsPerPage = ref(10)
 const page = ref(1)
 
