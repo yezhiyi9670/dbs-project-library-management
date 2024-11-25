@@ -48,7 +48,7 @@ watch(firstField, () => {
 <template>
   
   <v-card title="登录">
-    <div @keydown.enter="handleLogin">
+    <div @keydown.enter.prevent="handleLogin">
       <v-divider></v-divider>
       <v-card-text class="mt-2">
         <v-form v-model="valid">

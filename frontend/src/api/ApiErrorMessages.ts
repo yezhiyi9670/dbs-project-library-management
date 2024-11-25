@@ -53,7 +53,7 @@ export function fieldName(name: string) {
 export function fieldInvalidMessage(name: string) {
   switch(name) {
     case 'email':
-      return `电子邮箱必须含有 @ 字符`
+      return `电子邮箱必须含有恰好一个 @ 字符`
     case 'password':
       return `密码不能为空`
     case 'book_numbers': case 'book_number': case 'old_book_number':
@@ -69,7 +69,7 @@ export function fieldInvalidMessage(name: string) {
     case 'overdue_min':
       return `逾期次数必须是整数`
     case 'price_milliunit': case 'price_min': case 'price_max':
-      return `价格必须是整数`
+      return `价格必须是千分之一的倍数`
     case 'to_purchase_amount':
       return `待采购数量必须是整数`
   }

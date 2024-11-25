@@ -55,7 +55,7 @@ async function handleSubmit() {
 </script>
 <template>
   
-  <div @keydown.enter="handleSubmit">
+  <div @keydown.enter.prevent="handleSubmit">
     <v-form v-model="valid">
       <v-text-field
         type="text"

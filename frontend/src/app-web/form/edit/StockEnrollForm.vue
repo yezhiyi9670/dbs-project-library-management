@@ -90,7 +90,7 @@ watch([barcodeField, bookNumberField], () => {
             ref="book-number-field"
             v-model="book_number"
             label="书号（可扫描封底条形码）"
-            :rules="Api.validationRules([StockValidation.validateBookNumber_])"
+            :rules="Api.validationRules([StockValidation.validateBookNumber_], true)"
             required
           />
           <v-text-field
@@ -98,7 +98,7 @@ watch([barcodeField, bookNumberField], () => {
             v-model="barcode"
             label="藏书条码"
             @keydown.right.exact="handleGenerateBarcodeRequest"
-            :rules="Api.validationRules([StockValidation.validateBarcode_])"
+            :rules="Api.validationRules([StockValidation.validateBarcode_], true)"
             required
           />
           <v-checkbox

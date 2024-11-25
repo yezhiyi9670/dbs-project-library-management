@@ -75,7 +75,7 @@ emit('change', conditions.value)
 <template>
   
   <v-card class="pa-4">
-    <div @keydown.enter="updateFilters">
+    <div @keydown.enter.prevent="updateFilters">
       <v-form>
         <v-row dense>
           <v-col :="colSpec">

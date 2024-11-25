@@ -16,6 +16,10 @@ import PermissionGuard from '../component/PermissionGuard.vue';
 
 const appContext = useAppContext()
 const intent = appContext.value.getIntent()
+const do_filter_to_purchase = intent == titles__to_purchase
+if(!do_filter_to_purchase) {
+  appContext.value.putIntent(intent)  // It still need to be passed to the filter form
+}
 
 const router = useRouter()
 const conditions = ref<Object | null>(null)
@@ -25,7 +29,7 @@ const serverItems: Ref<Title[]> = ref([])
 const loading = ref(true)
 const totalItems = ref(0)
 
-const sortBy = ref<any>(intent == titles__to_purchase ? [{ key: 'to_purchase_amount', order: 'desc' }] : [])
+const sortBy = ref<any>(do_filter_to_purchase ? [{ key: 'to_purchase_amount', order: 'desc' }] : [])
 const itemsPerPage = ref(10)
 const page = ref(1)
 

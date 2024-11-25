@@ -53,7 +53,7 @@ watch(firstField, () => {
   </ReturnButton>
   <ToCenter>
     <SmallerMainTitle>密码登录</SmallerMainTitle>
-    <div style="width: 60%; margin: 0 auto;" @keydown.enter="handleLogin">
+    <div style="width: 60%; margin: 0 auto;" @keydown.enter.prevent="handleLogin">
       <v-form v-model="valid">
         <v-text-field
           name="username"

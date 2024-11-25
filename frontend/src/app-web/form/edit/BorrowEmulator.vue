@@ -82,7 +82,7 @@ function handleSubmit() {
             </v-col>
           </v-row>
           <v-divider class="mb-4" />
-          <div @keydown.enter="() => handleSubmit()">
+          <div @keydown.enter.prevent="() => handleSubmit()">
             <v-text-field
               ref="barcode-field"
               v-model="barcode"

@@ -53,7 +53,7 @@ watch(firstField, () => {
   
   <v-card title="修改借阅注记">
     <div
-      @keydown.enter="handleSubmit"
+      @keydown.enter.prevent="handleSubmit"
     >
       <v-divider></v-divider>
       <v-card-text class="mt-2">

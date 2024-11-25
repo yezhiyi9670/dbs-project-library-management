@@ -48,7 +48,7 @@ function handleEnter() {
     <div class="action-label">{{ actionLabel }}</div>
     <div v-if="tasks.length > 0" class="count-label">{{ tasks.length }}</div>
     <div style="width: calc(100% - 64px); margin: 0 auto">
-      <div @keydown.enter="handleEnter" style="margin-top: 80px">
+      <div @keydown.enter.prevent="handleEnter" style="margin-top: 80px">
         <v-text-field
           ref="barcode-scan-field"
           hide-details
