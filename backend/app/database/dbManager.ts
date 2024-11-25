@@ -17,10 +17,10 @@ class __DbManager {
     })
   }
   withConnectionAsync<T>(callback: (connection: DbConnection) => T | Promise<T>) {
-    return new Promise<T>((resolve, reject) => {
+    return new Promise<T>((ok, ko) => {
       this.pool!.getConnection(async (err, connection) => {
         if(err) {
-          return reject(err)
+          return ko(err)
         }
         try {
           let ret = callback(new DbConnection(connection))
@@ -28,22 +28,22 @@ class __DbManager {
             ret = await ret
           }
           connection.release()
-          resolve(ret)
+          ok(ret)
         } catch(err) {
           connection.release()
-          return reject(err)
+          return ko(err)
         }
       })
     })
   }
   withAtomicAsync<T>(callback: (connection: DbConnection) => T | Promise<T>) {
     return this.withConnectionAsync(async connection => {
-      await new Promise<void>((resolve, reject) => {
+      await new Promise<void>((ok, ko) => {
         connection.connection.beginTransaction((err) => {
           if(err) {
-            return reject(err)
+            return ko(err)
           }
-          resolve()
+          ok()
         })
       })
       try {
@@ -51,19 +51,19 @@ class __DbManager {
         if(ret instanceof Promise) {
           ret = await ret
         }
-        await new Promise<void>((resolve, reject) => {
+        await new Promise<void>((ok, ko) => {
           connection.connection.commit((err) => {
             if(err) {
-              return reject(err)
+              return ko(err)
             }
-            resolve()
+            ok()
           })
         })
         return ret
       } catch(err) {
-        await new Promise<void>((resolve, reject) => {
+        await new Promise<void>((ok, ko) => {
           connection.connection.rollback((err) => {
-            resolve()
+            ok()
           })
         })
         throw err

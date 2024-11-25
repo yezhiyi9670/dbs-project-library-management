@@ -29,6 +29,12 @@ export default function routeUser(app: Express) {
 
   app.post('/api/user/logout', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await gatherContextAsync(req)
+
+    // Explicitly require a field to prevent CSRF
+    const { __session } = Validation.getApiInputs_(req.body, {
+      __session: Validation.validateIsStr_
+    })
+
     let message = ''
     if(context.sessionId == null) {
       message = 'Not logged in.'
@@ -51,6 +57,11 @@ export default function routeUser(app: Express) {
   app.post('/api/user/logout-others', ApiHandlerWrap.wrap(async (req, res) => {
     const context = await gatherContextAsync(req)
     context.checkLoggedIn_()
+
+    // Explicitly require a field to prevent CSRF
+    const { __session } = Validation.getApiInputs_(req.body, {
+      __session: Validation.validateIsStr_
+    })
 
     await dbManager.withAtomicAsync(async db => {
       const whereClause = `Where session<>${SqlEscape.escape(context.sessionId!)} and username=${SqlEscape.escape(context.user!.username)}`

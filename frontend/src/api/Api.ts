@@ -53,7 +53,7 @@ export namespace Api {
   }
   export async function post(path: string, data: Object = {}) {
     const result = await call('post', path, data)
-    // await new Promise((resolve) => setTimeout(resolve, 1000))  // Delibrate throttle for testing
+    // await new Promise((ok) => setTimeout(ok, 1000))  // Deliberate throttle for testing
     return result
   }
 

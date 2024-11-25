@@ -23,10 +23,10 @@ export default class DbConnection {
   queryAsync(sql: string, values: unknown[], flatten: false): Promise<any[]>
   queryAsync(sql: string, values: unknown[], flatten: true): Promise<any[][]>
   queryAsync(sql: string, values: unknown[] = [], flatten: boolean = false) {
-    return new Promise<any[]>((resolve, reject) => {
+    return new Promise<any[]>((ok, ko) => {
       this.connection!.query(sql, values, (err, rows) => {
         if(err != null) {
-          reject(err)
+          ko(err)
           return
         }
         const ret: any[] = []
@@ -42,7 +42,7 @@ export default class DbConnection {
             }
           }
         }
-        resolve(ret)
+        ok(ret)
       })
     })
   }
