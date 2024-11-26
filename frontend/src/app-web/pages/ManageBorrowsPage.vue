@@ -133,7 +133,7 @@ watchEffect(async () => {
             <TimeDisplay :timestamp="item.borrow_time" />
           </template>
           <template v-slot:item.due_time="{ item }">
-            <TimeDisplay :timestamp="item.due_time" :overdue="item.returned ? item.return_time > item.due_time : (+new Date()) / 1000 > item.due_time" />
+            <TimeDisplay :timestamp="item.due_time" :overdue="item.overdue" />
           </template>
           <template v-slot:item.return_time="{ item }">
             <TimeDisplay v-if="item.returned" :timestamp="item.return_time" />

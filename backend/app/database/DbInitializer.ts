@@ -73,6 +73,13 @@ export default class DbInitializer {
     if(this.old_dataver < Math.min(this.target_dataver, 2)) {
       console.log('Migration: 1 -> 2')
 
+      console.log(`> Creating view ${tableInfo.name('borrows_view_overdue')}`)
+      await this.connection.queryAsync(
+        `CREATE VIEW ${ETN('borrows_view_overdue')} as
+        SELECT uuid, ((returned=1 and return_time>due_time) or (returned=0 and unix_timestamp(current_timestamp())>due_time)) overdue
+        from ${ETN('borrows')}`
+      )
+
       console.log(`> Creating view ${tableInfo.name('stocks_view_borrowed')}`)
       await this.connection.queryAsync(
         `CREATE VIEW ${ETN('stocks_view_borrowed')} as
@@ -83,9 +90,12 @@ export default class DbInitializer {
           SELECT username from ${ETN('borrows')}
           Where barcode=${ETN('stocks')}.barcode and returned=0 Limit 1
         ), '') borrowed_by, coalesce((
-          SELECT max(due_time) from ${ETN('borrows')}
+          SELECT min(due_time) from ${ETN('borrows')}
           Where barcode=${ETN('stocks')}.barcode and returned=0
-        ), 0) borrowed_due from ${ETN('stocks')}`
+        ), 0) borrowed_due, coalesce((
+          SELECT max(overdue) from ${ETN('borrows')} natural join ${ETN('borrows_view_overdue')}
+          Where barcode=${ETN('stocks')}.barcode and returned=0
+        ), 0) borrowed_overdue from ${ETN('stocks')}`
       )
 
       console.log(`> Creating view ${tableInfo.name('titles_view_stats')}`)
@@ -128,9 +138,12 @@ export default class DbInitializer {
           SELECT count(uuid) from ${ETN('borrows')}
           Where username=${ETN('users')}.username and returned=0
         ) active_borrows, (
-          SELECT count(uuid) from ${ETN('borrows')}
-          Where username=${ETN('users')}.username and returned=1 and return_time > due_time
-        ) overdue_records from ${ETN('users')}`
+          SELECT count(uuid) from ${ETN('borrows')} natural join ${ETN('borrows_view_overdue')}
+          Where username=${ETN('users')}.username and returned=1 and overdue=1
+        ) overdue_records, (
+          SELECT count(uuid) from ${ETN('borrows')} natural join ${ETN('borrows_view_overdue')}
+          Where username=${ETN('users')}.username and overdue=1
+        ) overdue_borrows from ${ETN('users')}`
       )
 
       console.log('> Update dataver information.')

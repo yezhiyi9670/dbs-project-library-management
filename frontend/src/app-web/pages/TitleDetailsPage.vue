@@ -42,15 +42,15 @@ const stats = computed<StatEntry[]>(() => {
   return [
     {
       label: '正常藏书数量',
-      figure: entry.total - entry.deprecated
+      figure: entry.normal()
     },
     {
       label: '可借数量',
-      figure: entry.total - entry.borrowed - entry.deprecated + entry.deprecated_and_borrowed
+      figure: entry.normal_and_unborrowed()
     },
     {
       label: '已借出数量',
-      figure: entry.borrowed - entry.deprecated_and_borrowed
+      figure: entry.normal_and_borrowed()
     },
     {
       label: '将淘汰数量',

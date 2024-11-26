@@ -68,9 +68,9 @@ watchEffect(async () => {
         </template>
         <template v-slot:item.__borrowables="{ item }">
           {{
-            item.total - item.deprecated - item.borrowed + item.deprecated_and_borrowed
+            item.normal_and_unborrowed()
           }}/{{
-            item.total - item.deprecated
+            item.normal()
           }}
         </template>
         <template v-slot:item.__accessible="{ item }">

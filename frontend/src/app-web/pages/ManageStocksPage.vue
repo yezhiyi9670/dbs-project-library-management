@@ -163,7 +163,7 @@ async function handleToggle(item: Stock) {
             <UsernameLink v-if="item.borrowed" :username="item.borrowed_by" />
           </template>
           <template v-slot:item.borrowed_due="{ item }">
-            <TimeDisplay v-if="item.borrowed" :timestamp="item.borrowed_due" :overdue="(+new Date()) > item.borrowed_due * 1000" />
+            <TimeDisplay v-if="item.borrowed" :timestamp="item.borrowed_due" :overdue="item.borrowed_overdue" />
             <template v-else>未借阅</template>
           </template>
           <template v-slot:item.deprecated="{ item }">

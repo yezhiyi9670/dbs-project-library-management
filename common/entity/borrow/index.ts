@@ -6,6 +6,7 @@ import { BorrowValidation } from "./validation";
 export default class Borrow implements Entity {
   __hasDerivatives: boolean = false
   public $stock: Stock | null = null
+  public overdue: boolean = false
 
   constructor(
     public uuid: string = '',
@@ -22,11 +23,17 @@ export default class Borrow implements Entity {
     }
   }
 
+  static withDerivatives() {
+    const ret = new Borrow()
+    ret.__hasDerivatives = true
+    return ret
+  }
+
   static fromExtDict(dict: any) {
     if(dict == null) {
       return null
     }
-    const ret = new Borrow()
+    const ret = Borrow.withDerivatives()
     EntityUtils.fromDict(ret, dict, false)
     ret.$stock = Stock.fromExtBaseDict(dict)
     return ret
@@ -56,6 +63,6 @@ export default class Borrow implements Entity {
   }
 
   derivativeFields() {
-    return []
+    return [ 'overdue' ]
   }
 }

@@ -69,7 +69,7 @@ export default class DbConnection {
 
   async queryEntitiesAsync<T extends Entity>(Instance: EntityConstructor<T>, sql: string, values: unknown[] = []) {
     const ctor = normalizeEntityConstructor(Instance)
-    return (await this.queryAsync(sql, values)).map(item => EntityUtils.fromDict(ctor(), item, false))
+    return (await this.queryAsync(sql, values)).map(item => EntityUtils.fromDict(ctor(), item))
   }
   async queryEntityAsync<T extends Entity>(Instance: EntityConstructor<T>, sql: string, values: unknown[] = []) {
     const list = await this.queryEntitiesAsync(Instance, sql, values)

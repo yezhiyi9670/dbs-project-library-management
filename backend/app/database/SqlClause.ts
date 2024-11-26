@@ -9,7 +9,8 @@ class JoinPresets {
   titles: TableOrViewNameOrJoins = ['titles', 'titles_view_stats']
   stocks: TableOrViewNameOrJoins = ['stocks', 'stocks_view_borrowed']
   stocks_ext: TableOrViewNameOrJoins = ['titles', 'stocks', 'stocks_view_borrowed']
-  borrows_ext: TableOrViewNameOrJoins = ['titles', 'stocks', 'borrows']
+  borrows: TableOrViewNameOrJoins = ['borrows', 'borrows_view_overdue']
+  borrows_ext: TableOrViewNameOrJoins = ['titles', 'stocks', 'borrows', 'borrows_view_overdue']
 }
 export const joinPresets = new JoinPresets()
 
@@ -39,16 +40,6 @@ export namespace SqlClause {
   }
   export function selectAnythingWhereDict(table: TableOrViewNameOrJoins, dict: Object) {
     return `${selectAnything(table)} ${whereClauseFromDict(dict)}`
-  }
-
-  export function selectAnyUser() {
-    const curTime = Math.floor((+new Date()) / 1000)
-    return 'SELECT *, coalesce(overdue_borrows_n, 0) overdue_borrows from ' + escapeIdOrJoins(joinPresets.users) + ' natural left outer join ' + `(
-      SELECT username, count(*) overdue_borrows_n from ${SqlEscape.escapeId(tableInfo.name('borrows'))} Where (returned=1 and return_time>due_time) or (returned=0 and ${SqlEscape.escape(curTime)}>due_time) Group by username
-    ) as dynamic_overdue_borrows`
-  }
-  export function selectAnyUserWhereDict(dict: Object) {
-    return `${selectAnyUser()} ${whereClauseFromDict(dict)}`
   }
 
   export function deleteAnything(table: TableOrViewName) {

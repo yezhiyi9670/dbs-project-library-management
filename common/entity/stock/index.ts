@@ -9,6 +9,7 @@ export default class Stock implements Entity {
   public borrowed: boolean = false
   public borrowed_by: string = ''
   public borrowed_due: number = -1
+  public borrowed_overdue: boolean = false
 
   constructor(
     public book_number: string = '',
@@ -68,6 +69,6 @@ export default class Stock implements Entity {
   }
 
   derivativeFields() {
-    return [ 'borrowed', 'borrowed_due', 'borrowed_by' ]
+    return [ 'borrowed', 'borrowed_due', 'borrowed_by', 'borrowed_overdue' ]
   }
 }

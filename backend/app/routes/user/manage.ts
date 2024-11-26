@@ -53,7 +53,7 @@ export default function routeUserManage(app: Express) {
       ])
       const limitClause = SqlClause.paginationClause(pn, rn)
       const orderClause = SqlClause.sortingClause(sort_by, sort_dir)
-      const sql = `${SqlClause.selectAnyUser()} ${whereClause} ${orderClause}`
+      const sql = `${SqlClause.selectAnything(joinPresets.users)} ${whereClause} ${orderClause}`
 
       try {
         const users = await db.queryEntitiesAsync([User.withDerivatives], `${sql} ${limitClause}`)
@@ -83,7 +83,7 @@ export default function routeUserManage(app: Express) {
     await dbManager.withAtomicAsync(async db => {
       const user = await db.queryEntityAsync(
         [User.withDerivatives],
-        SqlClause.selectAnyUserWhereDict({
+        SqlClause.selectAnythingWhereDict(joinPresets.users, {
           username: username
         })
       )
@@ -108,7 +108,7 @@ export default function routeUserManage(app: Express) {
         if(old_username) {
           let user = await db.queryEntityAsync(
             [User.withDerivatives],
-            SqlClause.selectAnyUserWhereDict({ username: old_username })
+            SqlClause.selectAnythingWhereDict(joinPresets.users, { username: old_username })
           )
           if(!user) {
             throw new NotFoundError(old_username)
@@ -167,7 +167,7 @@ export default function routeUserManage(app: Express) {
       })
       let origUser = await db.queryEntityAsync(
         [User.withDerivatives],
-        SqlClause.selectAnyUserWhereDict({ username: old_username })
+        SqlClause.selectAnythingWhereDict(joinPresets.users, { username: old_username })
       )
       if(!origUser) {
         throw new NotFoundError(old_username)

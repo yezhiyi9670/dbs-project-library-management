@@ -161,9 +161,9 @@ function handleSeeStock(item: Title, isNewTab: boolean) {
           </template>
           <template v-slot:item.total="{ item }">
             {{
-              item.total - item.deprecated - item.borrowed + item.deprecated_and_borrowed
+              item.normal_and_unborrowed()
             }}/{{
-              item.total - item.deprecated
+              item.normal()
             }}
           </template>
           <template v-slot:item.description="{ item }">

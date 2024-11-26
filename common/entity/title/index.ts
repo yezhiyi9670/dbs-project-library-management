@@ -25,6 +25,16 @@ export default class Title implements Entity {
     }
   }
 
+  normal_and_unborrowed() {
+    return this.total - this.borrowed - this.deprecated + this.deprecated_and_borrowed
+  }
+  normal_and_borrowed() {
+    return this.total - this.deprecated
+  }
+  normal() {
+    return this.total - this.deprecated
+  }
+
   static withDerivatives() {
     const ret = new Title()
     ret.__hasDerivatives = true

@@ -59,7 +59,7 @@ const schemaData = {
 }
 
 export type TableName = (keyof typeof schemaData)
-export type TableOrViewName = TableName | 'stocks_view_borrowed' | 'titles_view_stats' | 'users_view_stats'
+export type TableOrViewName = TableName | 'stocks_view_borrowed' | 'titles_view_stats' | 'users_view_stats' | 'borrows_view_overdue'
 
 class TableInfo {
   __addPrefix(name: string) {

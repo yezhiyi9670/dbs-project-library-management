@@ -12,6 +12,7 @@ import globalConfig from '../config/globalConfig';
 import RequestContext from '../context/RequestContext';
 import NotFoundError from '@library-management/common/error/entity/NotFoundError';
 import AlreadyExistsError from '@library-management/common/error/entity/AlreadyExistsError';
+import tableInfo from '../database/tableInfo';
 
 export namespace UserAuth {
   /**
@@ -54,7 +55,7 @@ export namespace UserAuth {
       // Gather and verify user
       const user = await db.queryEntityAsync(
         [User.withDerivatives],
-        SqlClause.selectAnyUserWhereDict({
+        SqlClause.selectAnythingWhereDict(joinPresets.users, {
           username: username
         })
       )
@@ -97,7 +98,7 @@ export namespace UserAuth {
     return await dbManager.withAtomicAsync(async db => {
       const user = await db.queryEntityAsync(
         [User.withDerivatives],
-        SqlClause.selectAnyUserWhereDict({
+        SqlClause.selectAnythingWhereDict(joinPresets.users, {
           username: username
         })
       )

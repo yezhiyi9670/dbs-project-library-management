@@ -64,9 +64,9 @@ export async function handleBorrowList(req: Request, res: Response, isAdmin: boo
       ] : []),
       ...(overdue ? [
         SqlClause.orCondition(overdue.map((item: boolean) => item ? (
-          `(returned=1 and return_time>due_time) or (returned=0 and ${SqlEscape.escape(curTime)}>due_time)`
+          `overdue=1`
         ) : (
-          `(returned=1 and return_time<=due_time) or (returned=0 and ${SqlEscape.escape(curTime)}<=due_time)`
+          `overdue=0`
         )))
       ] : []),
       ...(users ? [
@@ -127,7 +127,7 @@ export async function handleBorrow(req: Request, res: Response, op: 'borrow' | '
     if(isAdmin){
       const user = await db.queryEntityAsync(
         [User.withDerivatives],
-        SqlClause.selectAnyUserWhereDict({ username })
+        SqlClause.selectAnythingWhereDict(joinPresets.users, { username })
       )
       if(!user) {
         throw new NotFoundError(username)
