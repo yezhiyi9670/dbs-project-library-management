@@ -92,7 +92,7 @@ export namespace SqlClause {
     if(rn < 0) {  // The datatable component use -1 to represent all.
       return ''
     }
-    return `Limit ${(Math.max(0, pn - 1)) * rn}, ${rn}`
+    return `Limit ${SqlEscape.escape((Math.max(0, pn - 1)) * rn)}, ${SqlEscape.escape(rn)}`
   }
   export function sortingClause(sort_by: unknown, sort_dir: unknown) {
     // 注意：目前实现的排序有不致命的安全隐患——数据库中不允许用户查看的域也能用来排序
@@ -102,13 +102,16 @@ export namespace SqlClause {
     if(sort_dir == null) {
       sort_dir = 'asc'
     }
-    if(typeof sort_by != 'string' || typeof sort_dir != 'string') {
+    if(typeof sort_by != 'string' || (sort_dir != 'asc' && sort_dir != 'desc')) {
       return ''
     }
     if(sort_by.indexOf('.') != -1) {
       sort_by = sort_by.substring(sort_by.lastIndexOf('.') + 1)
     }
-    return `Order by ${sort_by} ${sort_dir}`
+    if(typeof sort_by != 'string') {
+      return ''
+    }
+    return `Order by ${SqlEscape.escapeId(sort_by)} ${sort_dir}`
   }
 
   export function whereClauseFromAnd(conditions: string[]) {
