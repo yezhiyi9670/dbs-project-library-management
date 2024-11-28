@@ -20,13 +20,9 @@ export namespace UserAuth {
    */
   export async function verifySessionAsync(sessionId: string, sessionSecret: string): Promise<[User | null, string | null]> {
     const curTime = Math.floor((+new Date()) / 1000)
-  
+    await clearExpiredSessionsAsync()
+
     return await dbManager.withAtomicAsync(async db => {
-      // Clear out expired sessions
-      await db.queryAsync(
-        `${SqlClause.deleteAnything('users_session')} Where expire < ${SqlEscape.escape(curTime)}`
-      )
-      
       // Gather and verify session
       const session = await db.queryEntityAsync(
         UserSession,
@@ -94,6 +90,7 @@ export namespace UserAuth {
    */
   export async function passwordfulLoginAsync(username: string, password: string): Promise<[User, string, string]> {
     const curTime = Math.floor((+new Date()) / 1000)
+    await clearExpiredSessionsAsync() // Prevent lagging the database by performing a lot of login and never using them.
 
     return await dbManager.withAtomicAsync(async db => {
       const user = await db.queryEntityAsync(
@@ -131,6 +128,20 @@ export namespace UserAuth {
       }
 
       return [ user, sessionId, sessionSecret ]
+    })
+  }
+
+  /**
+   * Delete expired sessions from db
+   */
+  async function clearExpiredSessionsAsync() {
+    const curTime = Math.floor((+new Date()) / 1000)
+
+    await dbManager.withAtomicAsync(async db => {
+      // Clear out expired sessions
+      await db.queryAsync(
+        `${SqlClause.deleteAnything('users_session')} Where expire < ${SqlEscape.escape(curTime)}`
+      )
     })
   }
 }
