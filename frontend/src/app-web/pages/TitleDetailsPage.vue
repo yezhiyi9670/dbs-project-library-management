@@ -79,7 +79,7 @@ const stats = computed<StatEntry[]>(() => {
     <h1 class="mb-4">{{ entryInfo.title }}</h1>
     <p class="mb-4"><code>{{ entryInfo.book_number }}</code></p>
     
-    <table class="mb-4">
+    <table class="mb-7">
       <tbody>
         <tr>
           <th class="details-field">作者</th>
@@ -118,7 +118,7 @@ const stats = computed<StatEntry[]>(() => {
         <StatDisplay :entry="stat" />
       </v-col>
     </v-row>
-    <p v-else>此书目没有线下藏书</p>
+    <p class="mt-8" v-else>此书目没有线下藏书</p>
   </v-container>
 
   <FullscreenLoading v-if="loading == 'loading'" />
