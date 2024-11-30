@@ -84,11 +84,11 @@ export class AppContext {
   }
 
   private __putIntent(intent: any) {
-    localStorage[this.data.config.cookiePrefix + '__' + 'intent'] = JSON.stringify(intent)
+    sessionStorage[this.data.config.cookiePrefix + '__' + 'intent'] = JSON.stringify(intent)
   }
   private __getIntent() {
     try {
-      return JSON.parse(localStorage[this.data.config.cookiePrefix + '__' + 'intent'])
+      return JSON.parse(sessionStorage[this.data.config.cookiePrefix + '__' + 'intent'])
     } catch(err) {
       return null
     }
