@@ -29,7 +29,7 @@ export default class Title implements Entity {
     return this.total - this.borrowed - this.deprecated + this.deprecated_and_borrowed
   }
   normal_and_borrowed() {
-    return this.total - this.deprecated
+    return this.borrowed - this.deprecated_and_borrowed
   }
   normal() {
     return this.total - this.deprecated
